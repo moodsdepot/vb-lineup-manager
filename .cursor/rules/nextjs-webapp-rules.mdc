@@ -27,7 +27,7 @@ Syntax and Formatting
 	• Avoid unnecessary curly braces in conditionals; use concise syntax for simple statements.
 	• Use declarative JSX.
 UI and Styling
-	• Use DaisyUI and Tailwind CSS for components and styling.
+	• Use Shadcn or DaisyUI and Tailwind CSS for components and styling.
 	• Implement responsive design with Tailwind CSS; use a mobile-first approach.
 Performance Optimization
 	• Minimize use of 'use client', useState, and useEffect; favor React Server Components (RSC).
