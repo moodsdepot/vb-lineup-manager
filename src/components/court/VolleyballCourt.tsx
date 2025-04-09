@@ -3,10 +3,11 @@
 
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import type { PlayerToken as PlayerTokenType } from '@/types/volleyball';
 import PlayerTokenComponent from '@/components/players/PlayerToken';
 import EditPlayerDialog from '@/components/players/EditPlayerDialog';
+import DrawingCanvas from './DrawingCanvas';
 
 // Define the default court positions that players will rotate into
 const DEFAULT_POSITIONS = [
@@ -36,6 +37,17 @@ export default function VolleyballCourt() {
     active: boolean;
     firstPlayer?: PlayerTokenType;
   }>({ active: false });
+
+  const [isDrawing, setIsDrawing] = useState(false);
+  const [drawingColor, setDrawingColor] = useState('#ffffff');
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  const colors = [
+    { name: 'White', value: '#ffffff' },
+    { name: 'Yellow', value: '#ffd700' },
+    { name: 'Red', value: '#ff4444' },
+    { name: 'Blue', value: '#4444ff' },
+  ];
 
   const handleRotation = () => {
     setPlayers(prevPlayers => {
@@ -122,10 +134,20 @@ export default function VolleyballCourt() {
     }
   };
 
+  const handleClearDrawing = () => {
+    const canvas = canvasRef.current;
+    const ctx = canvas?.getContext('2d');
+    if (ctx) {
+      ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+    }
+    setIsDrawing(false);
+  };
+
   return (
     <DndProvider backend={HTML5Backend}>
       <div className="w-full max-w-2xl mx-auto space-y-4">
-        <div className="flex justify-between items-center">
+        {/* Buttons with higher z-index */}
+        <div className="relative z-[100] flex justify-between items-center">
           <button
             onClick={() => setSwapMode({ active: false })}
             className={`px-4 py-2 rounded-lg ${
@@ -158,12 +180,41 @@ export default function VolleyballCourt() {
             </svg>
             Rotate
           </button>
-        </div>
 
-        <div className="relative">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => isDrawing ? handleClearDrawing() : setIsDrawing(true)}
+              className={`px-4 py-2 rounded-lg ${
+                isDrawing 
+                  ? 'bg-destructive text-destructive-foreground' 
+                  : 'bg-secondary text-secondary-foreground'
+              }`}
+            >
+              {isDrawing ? 'Clear Drawing' : 'Draw'}
+            </button>
+            
+            {isDrawing && (
+              <div className="flex gap-1">
+                {colors.map((color) => (
+                  <button
+                    key={color.value}
+                    onClick={() => setDrawingColor(color.value)}
+                    className={`w-8 h-8 rounded-full border-2 ${
+                      drawingColor === color.value ? 'border-primary' : 'border-transparent'
+                    }`}
+                    style={{ backgroundColor: color.value }}
+                    title={color.name}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+        
+        <div className="relative court-container">
           <svg 
             viewBox="0 0 300 300" 
-            className="w-full h-auto volleyball-court"
+            className="w-full h-full volleyball-court z-10"
             preserveAspectRatio="xMidYMid meet"
           >
             {/* Court background with wooden texture gradient */}
@@ -239,7 +290,7 @@ export default function VolleyballCourt() {
             <circle cx="275" cy="50" r="4" fill="#333" />
           </svg>
 
-          {/* Player tokens with animation */}
+          {/* Player Tokens */}
           <div className="absolute inset-0">
             {players.map((player) => (
               <PlayerTokenComponent 
@@ -252,6 +303,9 @@ export default function VolleyballCourt() {
               />
             ))}
           </div>
+
+          {/* Drawing Canvas */}
+          {isDrawing && <DrawingCanvas isDrawing={isDrawing} color={drawingColor} />}
         </div>
 
         {editingPlayer && (
