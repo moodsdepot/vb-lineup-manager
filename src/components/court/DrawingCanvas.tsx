@@ -16,28 +16,26 @@ export default function DrawingCanvas({ isDrawing, color }: DrawingCanvasProps) 
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    // Get the court element
-    const court = document.querySelector('.court-container');
-    if (!court) return;
+    const resizeCanvas = () => {
+      const courtContainer = canvas.parentElement;
+      if (!courtContainer) return;
+      
+      // Match canvas size to court container
+      canvas.width = courtContainer.clientWidth;
+      canvas.height = courtContainer.clientHeight;
 
-    // Match the court size and position
-    const courtRect = court.getBoundingClientRect();
-    canvas.style.width = `${courtRect.width}px`;
-    canvas.style.height = `${courtRect.height}px`;
-    canvas.width = courtRect.width;
-    canvas.height = courtRect.height;
-    
-    // Position the canvas exactly over the court
-    canvas.style.top = `${courtRect.top}px`;
-    canvas.style.left = `${courtRect.left}px`;
+      // Set initial canvas properties
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.lineWidth = 8;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+      }
+    };
 
-    // Set initial canvas properties
-    const ctx = canvas.getContext('2d');
-    if (ctx) {
-      ctx.lineWidth = 8; // Increased thickness
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
-    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+    return () => window.removeEventListener('resize', resizeCanvas);
   }, []);
 
   const startDraw = (e: React.MouseEvent) => {
@@ -68,7 +66,6 @@ export default function DrawingCanvas({ isDrawing, color }: DrawingCanvasProps) 
 
     ctx.beginPath();
     ctx.strokeStyle = color;
-    ctx.lineWidth = 8; // Increased thickness
     ctx.moveTo(lastPosRef.current.x, lastPosRef.current.y);
     ctx.lineTo(currentPos.x, currentPos.y);
     ctx.stroke();
@@ -83,12 +80,11 @@ export default function DrawingCanvas({ isDrawing, color }: DrawingCanvasProps) 
   return (
     <canvas
       ref={canvasRef}
-      className="absolute"
+      className="absolute inset-0 w-full h-full"
       style={{
         pointerEvents: isDrawing ? 'auto' : 'none',
         cursor: isDrawing ? 'crosshair' : 'default',
-        position: 'fixed', // Use fixed positioning
-        zIndex: 50, // High z-index but not over buttons
+        zIndex: 15,
       }}
       onMouseDown={startDraw}
       onMouseMove={draw}
