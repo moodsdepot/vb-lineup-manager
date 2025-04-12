@@ -1,28 +1,15 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 
 export default function JoinTeamForm() {
   const [code, setCode] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
-    setIsLoading(true);
-
-    try {
-      // TODO: Implement API call
-      console.log('Joining team with code:', code);
-      // router.push(`/team/${teamId}`);
-    } catch (err) {
-      setError('Invalid team code');
-    } finally {
-      setIsLoading(false);
-    }
+    setError('This feature is coming soon!');
   };
 
   return (
@@ -33,20 +20,18 @@ export default function JoinTeamForm() {
           value={code}
           onChange={(e) => setCode(e.target.value.toUpperCase())}
           placeholder="Enter team code"
-          className="w-full px-3 py-2 border rounded-md text-sm"
+          className="w-full px-4 py-3 bg-blue-800/30 text-white border border-white/10 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent placeholder-white/40"
           maxLength={6}
-          disabled={isLoading}
         />
         {error && (
-          <p className="text-destructive text-sm mt-1">{error}</p>
+          <p className="text-blue-300 text-sm mt-1">{error}</p>
         )}
       </div>
       <button
         type="submit"
-        className="w-full inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
-        disabled={isLoading || code.length < 4}
+        className="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-blue-400 hover:from-blue-700 hover:to-blue-500 text-white font-satoshi font-bold rounded-md disabled:opacity-50 transition-all duration-300"
       >
-        {isLoading ? 'Joining...' : 'Join Team'}
+        Join Team
       </button>
     </form>
   );

@@ -1,0 +1,20 @@
+<svg width="200" height="200" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Clipboard outline -->
+  <path d="M140 50c0-5.5-4.5-10-10-10H70c-5.5 0-10 4.5-10 10v120c0 5.5 4.5 10 10 10h60c5.5 0 10-4.5 10-10V50z" stroke="black" stroke-width="8" fill="transparent"/>
+  
+  <!-- Clipboard top clip -->
+  <path d="M115 30c0-8.3-6.7-15-15-15s-15 6.7-15 15v10h-5c-2.8 0-5 2.2-5 5s2.2 5 5 5h40c2.8 0 5-2.2 5-5s-2.2-5-5-5h-5V30z" fill="black"/>
+  
+  <!-- X in top left -->
+  <path d="M80 70L65 85M65 70L80 85" stroke="black" stroke-width="8" stroke-linecap="round"/>
+  
+  <!-- O in bottom left -->
+  <circle cx="72.5" cy="110" r="10" stroke="black" stroke-width="8" fill="transparent"/>
+  
+  <!-- X in bottom right -->
+  <path d="M125 110L110 125M110 110L125 125" stroke="black" stroke-width="8" stroke-linecap="round"/>
+  
+  <!-- Arrow (diagonal - up-right) -->
+  <path d="M85 115L125 75" stroke="#E5A287" stroke-width="8" stroke-linecap="round"/>
+  <path d="M115 75H125V85" stroke="#E5A287" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+</svg> 

@@ -1,3 +1,5 @@
+@import '../styles/fonts.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -138,5 +140,13 @@
       var(--court-wood-light) 70%,
       var(--court-wood-dark) 100%
     );
+  }
+
+  :root {
+    --font-satoshi: 'Satoshi', system-ui, sans-serif;
+  }
+
+  html {
+    font-family: var(--font-satoshi);
   }
 }
