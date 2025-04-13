@@ -30,7 +30,7 @@ export default function Page() {
             LineupMan
           </h1>
           <p className="font-satoshi text-xl md:text-2xl text-white/80 max-w-2xl mx-auto">
-            Create, manage, and share your volleyball lineups with ease
+            Create, manage, and share your team lineups with ease
           </p>
         </div>
 
