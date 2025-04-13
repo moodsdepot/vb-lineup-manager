@@ -28,6 +28,7 @@ export const metadata: Metadata = {
     width: 'device-width',
     initialScale: 1,
     maximumScale: 1,
+    userScalable: false,
   },
 };
 
@@ -38,7 +39,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="min-h-screen bg-background text-foreground antialiased">
+      <body className="min-h-screen bg-background text-foreground antialiased overflow-auto touch-pan-y">
         {children}
       </body>
     </html>

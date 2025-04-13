@@ -1,7 +1,7 @@
 'use client';
 
 import { useDrag } from 'react-dnd';
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import type { PlayerToken } from '@/types/volleyball';
 
 interface PlayerTokenProps {
@@ -22,6 +22,7 @@ export default function PlayerTokenComponent({
   isRotating = false
 }: PlayerTokenProps) {
   const ref = useRef<HTMLDivElement>(null);
+  const [lastTap, setLastTap] = useState(0);
 
   const [{ isDragging }, drag] = useDrag(() => ({
     type: 'player',
@@ -30,26 +31,41 @@ export default function PlayerTokenComponent({
       isDragging: monitor.isDragging(),
     }),
     end: (item, monitor) => {
-      const clientOffset = monitor.getClientOffset();
-      
-      if (clientOffset && ref.current) {
-        const courtRect = ref.current.parentElement?.getBoundingClientRect();
-        if (courtRect) {
-          const x = ((clientOffset.x - courtRect.left) / courtRect.width) * 100;
-          const y = ((clientOffset.y - courtRect.top) / courtRect.height) * 100;
-          onMove(Math.max(0, Math.min(100, x)), Math.max(0, Math.min(100, y)));
+      const dropResult = monitor.getDropResult();
+      const didDrop = monitor.didDrop();
+      if (!didDrop && ref.current) {
+        // Handle case when dropped outside valid drop target
+        const courtRect = ref.current.parentElement!.getBoundingClientRect();
+        const dropOffset = monitor.getClientOffset();
+        if (dropOffset) {
+          const x = ((dropOffset.x - courtRect.left) / courtRect.width) * 100;
+          const y = ((dropOffset.y - courtRect.top) / courtRect.height) * 100;
+          onMove(x, y);
         }
       }
     },
   }), [player.id, onMove]);
+
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    const now = Date.now();
+    const DOUBLE_TAP_DELAY = 300;
+    
+    if (lastTap && (now - lastTap) < DOUBLE_TAP_DELAY) {
+      e.preventDefault();
+      onDoubleClick?.();
+      setLastTap(0);
+    } else {
+      setLastTap(now);
+      onClick?.();
+    }
+  };
 
   drag(ref);
 
   return (
     <div 
       ref={ref}
-      onClick={onClick}
-      onDoubleClick={onDoubleClick}
+      onTouchEnd={handleTouchEnd}
       className={`
         absolute transform -translate-x-1/2 -translate-y-1/2
         w-10 h-10 rounded-full 

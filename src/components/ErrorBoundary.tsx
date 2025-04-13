@@ -10,8 +10,10 @@ export default function ErrorBoundary({
   reset: () => void;
 }) {
   useEffect(() => {
-    // Log the error to console in development
-    console.error(error);
+    // Only log errors in development
+    if (process.env.NODE_ENV === 'development') {
+      console.error(error);
+    }
   }, [error]);
 
   return (
@@ -20,7 +22,7 @@ export default function ErrorBoundary({
         <div className="bg-blue-950/70 backdrop-blur-lg border border-white/10 rounded-xl p-8">
           <h2 className="text-2xl font-bold text-white mb-4">Something went wrong!</h2>
           <p className="text-white/70 mb-6">
-            Don&apos;t worry, it&apos;s not your fault. Please try again.
+            Please try refreshing the page.
           </p>
           <button
             onClick={reset}

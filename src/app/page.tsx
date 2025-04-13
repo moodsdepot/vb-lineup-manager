@@ -4,8 +4,8 @@ import CreateTeamForm from '@/components/teams/CreateTeamForm';
 
 export default function Page() {
   return (
-    <main className="min-h-screen overflow-hidden relative">
-      {/* Main full-screen background gradient */}
+    <main className="min-h-screen w-full touch-auto">
+      {/* Fixed background */}
       <div className="fixed inset-0 bg-gradient-to-b from-blue-950 via-indigo-900 to-blue-900"></div>
       
       {/* Layered gradients for more depth and smoothness */}
