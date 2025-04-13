@@ -132,7 +132,6 @@ export default function DrawingCanvas({ isDrawing, color }: DrawingCanvasProps) 
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    // Add touch event listeners
     canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
     canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
     canvas.addEventListener('touchend', handleTouchEnd);
@@ -142,7 +141,7 @@ export default function DrawingCanvas({ isDrawing, color }: DrawingCanvasProps) 
       canvas.removeEventListener('touchmove', handleTouchMove);
       canvas.removeEventListener('touchend', handleTouchEnd);
     };
-  }, [isDrawing, isDrawingActive, color]);
+  }, [isDrawing, isDrawingActive, color, handleTouchStart, handleTouchMove]);
 
   return (
     <canvas

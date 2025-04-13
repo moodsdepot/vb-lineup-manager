@@ -29,9 +29,6 @@ export default function VolleyballCourt() {
     { id: '6', number: "2", position: "OH", x: 33, y: 75 },   // Position 5
   ]);
 
-  // Keep track of current rotation index
-  const [rotationIndex, setRotationIndex] = useState(0);
-
   const [editingPlayer, setEditingPlayer] = useState<PlayerTokenType | null>(null);
   const [swapMode, setSwapMode] = useState<{
     active: boolean;

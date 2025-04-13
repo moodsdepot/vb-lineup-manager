@@ -4,7 +4,6 @@ import { useState } from 'react';
 
 export default function JoinTeamForm() {
   const [code, setCode] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {

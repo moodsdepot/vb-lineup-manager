@@ -4,7 +4,6 @@ import { useState } from 'react';
 
 export default function CreateTeamForm() {
   const [teamName, setTeamName] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
   const handleSubmit = async (e: React.FormEvent) => {

@@ -31,7 +31,7 @@ export default function PlayerTokenComponent({
       isDragging: monitor.isDragging(),
     }),
     end: (item, monitor) => {
-      const dropResult = monitor.getDropResult();
+      monitor.getDropResult();
       const didDrop = monitor.didDrop();
       if (!didDrop && ref.current) {
         // Handle case when dropped outside valid drop target

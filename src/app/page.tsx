@@ -55,7 +55,7 @@ export default function Page() {
                 <span className="text-xs font-medium bg-blue-500/20 text-blue-300 rounded-full px-2 py-1">Coming Soon</span>
               </div>
               <p className="text-white/70 mb-6">
-                Enter your team code to access your team's lineups
+                Enter your team code to access your team&apos;s lineups
               </p>
               <JoinTeamForm />
             </div>
