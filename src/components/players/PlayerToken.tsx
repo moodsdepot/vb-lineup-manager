@@ -24,6 +24,31 @@ export default function PlayerTokenComponent({
   const ref = useRef<HTMLDivElement>(null);
   const [lastTap, setLastTap] = useState(0);
 
+  // Handle mouse clicks for web
+  const handleClick = (e: React.MouseEvent) => {
+    onClick?.();
+  };
+
+  const handleDoubleClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    onDoubleClick?.();
+  };
+
+  // Handle touch events for mobile
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    const now = Date.now();
+    const DOUBLE_TAP_DELAY = 300;
+    
+    if (lastTap && (now - lastTap) < DOUBLE_TAP_DELAY) {
+      e.preventDefault();
+      onDoubleClick?.();
+      setLastTap(0);
+    } else {
+      setLastTap(now);
+      onClick?.();
+    }
+  };
+
   const [{ isDragging }, drag] = useDrag(() => ({
     type: 'player',
     item: { id: player.id },
@@ -46,25 +71,13 @@ export default function PlayerTokenComponent({
     },
   }), [player.id, onMove]);
 
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    const now = Date.now();
-    const DOUBLE_TAP_DELAY = 300;
-    
-    if (lastTap && (now - lastTap) < DOUBLE_TAP_DELAY) {
-      e.preventDefault();
-      onDoubleClick?.();
-      setLastTap(0);
-    } else {
-      setLastTap(now);
-      onClick?.();
-    }
-  };
-
   drag(ref);
 
   return (
     <div 
       ref={ref}
+      onClick={handleClick}
+      onDoubleClick={handleDoubleClick}
       onTouchEnd={handleTouchEnd}
       className={`
         absolute transform -translate-x-1/2 -translate-y-1/2
