@@ -3,12 +3,11 @@
 
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import { useState, useRef } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import type { PlayerToken as PlayerTokenType } from '@/types/volleyball';
 import PlayerTokenComponent from '@/components/players/PlayerToken';
 import EditPlayerDialog from '@/components/players/EditPlayerDialog';
 import DrawingCanvas from './DrawingCanvas';
-import Link from 'next/link';
 
 // Define the default court positions that players will rotate into
 const DEFAULT_POSITIONS = [

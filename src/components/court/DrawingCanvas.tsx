@@ -83,63 +83,52 @@ export default function DrawingCanvas({ isDrawing, color }: DrawingCanvasProps) 
   };
 
   // Touch event handlers
-  const handleTouchStart = (e: TouchEvent) => {
-    e.preventDefault();
-    const touch = e.touches[0];
-    const canvas = canvasRef.current;
-    if (!canvas || !isDrawing) return;
-
-    const rect = canvas.getBoundingClientRect();
-    lastPos.current = {
-      x: touch.clientX - rect.left,
-      y: touch.clientY - rect.top
-    };
-    setIsDrawingActive(true);
-  };
-
-  const handleTouchMove = (e: TouchEvent) => {
-    e.preventDefault();
-    if (!isDrawingActive || !canvasRef.current || !lastPos.current) return;
-
-    const touch = e.touches[0];
-    const canvas = canvasRef.current;
-    const rect = canvas.getBoundingClientRect();
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    const currentPos = {
-      x: touch.clientX - rect.left,
-      y: touch.clientY - rect.top
-    };
-
-    ctx.beginPath();
-    ctx.moveTo(lastPos.current.x, lastPos.current.y);
-    ctx.lineTo(currentPos.x, currentPos.y);
-    ctx.strokeStyle = color;
-    ctx.lineWidth = 4;
-    ctx.lineCap = 'round';
-    ctx.stroke();
-
-    lastPos.current = currentPos;
-  };
-
-  const handleTouchEnd = () => {
-    setIsDrawingActive(false);
-    lastPos.current = null;
-  };
-
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
-    canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
-    canvas.addEventListener('touchend', handleTouchEnd);
+    const handleTouchStart = (e: TouchEvent) => {
+      if (!isDrawing) return;
+      e.preventDefault();
+      
+      const touch = e.touches[0];
+      const rect = canvas.getBoundingClientRect();
+      lastPos.current = {
+        x: touch.clientX - rect.left,
+        y: touch.clientY - rect.top
+      };
+      setIsDrawingActive(true);
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (!isDrawingActive || !lastPos.current) return;
+      e.preventDefault();
+      
+      const touch = e.touches[0];
+      const rect = canvas.getBoundingClientRect();
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+
+      const currentPos = {
+        x: touch.clientX - rect.left,
+        y: touch.clientY - rect.top
+      };
+
+      ctx.beginPath();
+      ctx.moveTo(lastPos.current.x, lastPos.current.y);
+      ctx.lineTo(currentPos.x, currentPos.y);
+      ctx.strokeStyle = color;
+      ctx.stroke();
+
+      lastPos.current = currentPos;
+    };
+
+    canvas.addEventListener('touchstart', handleTouchStart);
+    canvas.addEventListener('touchmove', handleTouchMove);
 
     return () => {
       canvas.removeEventListener('touchstart', handleTouchStart);
       canvas.removeEventListener('touchmove', handleTouchMove);
-      canvas.removeEventListener('touchend', handleTouchEnd);
     };
   }, [isDrawing, isDrawingActive, color]);
 
