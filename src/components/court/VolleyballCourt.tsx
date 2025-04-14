@@ -8,6 +8,7 @@ import type { PlayerToken as PlayerTokenType } from '@/types/volleyball';
 import PlayerTokenComponent from '@/components/players/PlayerToken';
 import EditPlayerDialog from '@/components/players/EditPlayerDialog';
 import DrawingCanvas from './DrawingCanvas';
+import Link from 'next/link';
 
 // Define the default court positions that players will rotate into
 const DEFAULT_POSITIONS = [
@@ -127,6 +128,8 @@ export default function VolleyballCourt() {
           return p;
         });
       });
+      
+      // Always cancel swap mode after successful swap
       setSwapMode({ active: false });
     }
   };
@@ -143,24 +146,38 @@ export default function VolleyballCourt() {
   return (
     <DndProvider backend={HTML5Backend}>
       <div className="w-full max-w-2xl mx-auto space-y-4">
-        {/* Buttons with higher z-index */}
-        <div className="relative z-[100] flex justify-between items-center">
-          <button
-            onClick={() => setSwapMode({ active: false })}
-            className={`px-4 py-2 rounded-lg ${
-              swapMode.active 
-                ? 'bg-destructive text-destructive-foreground' 
-                : 'bg-secondary text-secondary-foreground'
-            }`}
-            disabled={editingPlayer !== null}
-          >
-            {swapMode.active ? 'Cancel Swap' : 'Swap Players'}
-          </button>
-          
+        {/* Instructions panel - moved to top */}
+        <div className="px-4">
+          <div className="bg-background/80 backdrop-blur-sm rounded-lg p-3 text-sm text-white/80">
+            <div className="flex flex-col gap-1.5">
+              <p className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-primary/80"></span>
+                Single tap to swap players
+              </p>
+              <p className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-primary/80"></span>
+                Double tap to edit player
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Action buttons - fixed width and consistent spacing */}
+        <div className="px-4 flex flex-wrap items-center justify-end gap-2">
+          {swapMode.active && (
+            <button
+              onClick={() => setSwapMode({ active: false })}
+              className="h-10 px-4 bg-destructive text-destructive-foreground rounded-lg"
+              disabled={editingPlayer !== null}
+            >
+              Cancel Swap
+            </button>
+          )}
+
           <button
             onClick={handleRotation}
-            className="bg-primary text-primary-foreground px-4 py-2 rounded-lg 
-                     hover:bg-primary/90 transition-colors flex items-center gap-2"
+            className="h-10 px-4 bg-primary text-primary-foreground rounded-lg 
+                     flex items-center justify-center gap-2"
           >
             <svg 
               className="w-5 h-5" 
@@ -178,36 +195,30 @@ export default function VolleyballCourt() {
             Rotate
           </button>
 
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => isDrawing ? handleClearDrawing() : setIsDrawing(true)}
-              className={`px-4 py-2 rounded-lg ${
-                isDrawing 
-                  ? 'bg-destructive text-destructive-foreground' 
-                  : 'bg-secondary text-secondary-foreground'
-              }`}
-            >
-              {isDrawing ? 'Clear Drawing' : 'Draw'}
-            </button>
-            
-            {isDrawing && (
-              <div className="flex gap-1">
-                {colors.map((color) => (
-                  <button
-                    key={color.value}
-                    onClick={() => setDrawingColor(color.value)}
-                    className={`w-8 h-8 rounded-full border-2 ${
-                      drawingColor === color.value ? 'border-primary' : 'border-transparent'
-                    }`}
-                    style={{ backgroundColor: color.value }}
-                    title={color.name}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
+          <button
+            onClick={() => isDrawing ? handleClearDrawing() : setIsDrawing(true)}
+            className="h-10 px-4 bg-secondary text-secondary-foreground rounded-lg"
+          >
+            {isDrawing ? 'Clear Drawing' : 'Draw'}
+          </button>
+
+          {isDrawing && (
+            <div className="flex gap-1">
+              {colors.map((color) => (
+                <button
+                  key={color.value}
+                  onClick={() => setDrawingColor(color.value)}
+                  className={`w-10 h-10 rounded-lg border-2 ${
+                    drawingColor === color.value ? 'border-primary' : 'border-transparent'
+                  }`}
+                  style={{ backgroundColor: color.value }}
+                  title={color.name}
+                />
+              ))}
+            </div>
+          )}
         </div>
-        
+
         <div className="relative court-container">
           <svg 
             viewBox="0 0 300 300" 
