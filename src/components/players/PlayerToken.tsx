@@ -25,7 +25,7 @@ export default function PlayerTokenComponent({
   const [lastTap, setLastTap] = useState(0);
 
   // Handle mouse clicks for web
-  const handleClick = (e: React.MouseEvent) => {
+  const handleClick = () => {
     onClick?.();
   };
 

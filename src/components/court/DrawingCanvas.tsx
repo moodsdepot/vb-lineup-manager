@@ -82,7 +82,7 @@ export default function DrawingCanvas({ isDrawing, color }: DrawingCanvasProps) 
     lastPos.current = null;
   };
 
-  // Touch event handlers (keep your existing touch handlers)
+  // Touch event handlers
   const handleTouchStart = (e: TouchEvent) => {
     e.preventDefault();
     const touch = e.touches[0];
@@ -141,7 +141,7 @@ export default function DrawingCanvas({ isDrawing, color }: DrawingCanvasProps) 
       canvas.removeEventListener('touchmove', handleTouchMove);
       canvas.removeEventListener('touchend', handleTouchEnd);
     };
-  }, [isDrawing, isDrawingActive, color, handleTouchStart, handleTouchMove]);
+  }, [isDrawing, isDrawingActive, color]);
 
   return (
     <canvas
