@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import JoinTeamForm from '@/components/teams/JoinTeamForm';
 import CreateTeamForm from '@/components/teams/CreateTeamForm';
 
@@ -26,6 +27,16 @@ export default function Page() {
       <div className="relative w-full max-w-7xl mx-auto px-4 py-12 md:py-24 flex flex-col items-center">
         {/* Hero Section */}
         <div className="text-center mb-16 md:mb-24">
+          <div className="mb-8">
+            <Image 
+              src="/volleyball-logo.png"
+              alt="LineupMan Volleyball Logo"
+              width={100} 
+              height={100} 
+              className="mx-auto" 
+              priority 
+            />
+          </div>
           <h1 className="font-satoshi font-bold text-5xl md:text-7xl lg:text-8xl tracking-tight text-white mb-6">
             LineupMan
           </h1>

@@ -1,8 +1,16 @@
-import { Metadata } from 'next';
+import { Metadata, Viewport } from 'next';
 import './globals.css';
 
-// Add basic metadata first
+// --- Define metadataBase with your actual domain ---
+const productionUrl = process.env.NODE_ENV === 'production' 
+  ? new URL('https://lineupman.net') // Use your domain here
+  : new URL(`http://localhost:${process.env.PORT || 3000}`);
+
+// --- Define Metadata ---
 export const metadata: Metadata = {
+  // Add metadataBase
+  metadataBase: productionUrl,
+  
   title: {
     default: 'LineupMan - Volleyball Lineup Manager',
     template: '%s | LineupMan'
@@ -11,27 +19,46 @@ export const metadata: Metadata = {
   keywords: ['volleyball', 'lineup', 'rotation', 'sports', 'coaching', 'team management', 'volleyball positions'],
   authors: [{ name: 'LineupMan' }],
   creator: 'LineupMan',
+  
+  icons: {
+    icon: '/volleyball-logo.png', 
+    shortcut: '/volleyball-logo.png',
+    apple: '/volleyball-logo.png',
+  },
+  
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: 'https://your-domain.com', // Replace with your actual domain when ready
     title: 'LineupMan - Volleyball Lineup Manager',
     description: 'Create, manage, and share your volleyball lineups with ease',
     siteName: 'LineupMan',
+    images: [ 
+      {
+        url: '/volleyball-logo.png', 
+        width: 100,
+        height: 100,
+        alt: 'LineupMan Volleyball Logo', 
+      },
+    ],
   },
+  
   twitter: {
-    card: 'summary_large_image',
+    card: 'summary', 
     title: 'LineupMan - Volleyball Lineup Manager',
     description: 'Create, manage, and share your volleyball lineups with ease',
-  },
-  viewport: {
-    width: 'device-width',
-    initialScale: 1,
-    maximumScale: 1,
-    userScalable: false,
+    images: ['/volleyball-logo.png'], 
   },
 };
 
+// --- Define Viewport Separately ---
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+};
+
+// --- Root Layout Component ---
 export default function RootLayout({
   children,
 }: Readonly<{

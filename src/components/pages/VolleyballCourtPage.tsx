@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import VolleyballCourt from "@/components/court/VolleyballCourt";
 
 export default function VolleyballCourtPage() {
@@ -28,9 +29,18 @@ export default function VolleyballCourtPage() {
         </div>
 
         <header className="text-center space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight">
-            🏐 Volleyball Lineup Manager
-          </h1>
+          <div className="flex items-center justify-center gap-3 mb-2">
+            <Image
+              src="/volleyball-logo.png"
+              alt="LineupMan Volleyball Logo"
+              width={40}
+              height={40}
+              className="inline-block"
+            />
+            <h1 className="text-3xl font-bold tracking-tight">
+              Volleyball Lineup Manager
+            </h1>
+          </div>
           <p className="text-muted-foreground">
             Create, manage, and share your team lineups
           </p>
