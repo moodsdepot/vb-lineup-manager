@@ -1,9 +1,77 @@
+'use client';
+
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import JoinTeamForm from '@/components/teams/JoinTeamForm';
 import CreateTeamForm from '@/components/teams/CreateTeamForm';
+import AuthModal from '@/components/auth/AuthModal';
+import { getSupabaseBrowserClient } from '@/lib/supabase';
+import type { User } from '@supabase/supabase-js';
 
 export default function Page() {
+  const [user, setUser] = useState<User | null>(null);
+  const [loadingUser, setLoadingUser] = useState(true);
+  
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authModalMode, setAuthModalMode] = useState<'login' | 'signup'>('login');
+
+  useEffect(() => {
+     const supabase = getSupabaseBrowserClient(); 
+     let isMounted = true;
+     const fetchUser = async () => { 
+        try {
+             const { data: { session }, error } = await supabase.auth.getSession();
+             if (error) throw error;
+             if (isMounted) {
+                 setUser(session?.user ?? null);
+             }
+        } catch (err) {
+            console.error("Error getting session on page load:", err);
+        } finally {
+             if (isMounted) setLoadingUser(false);
+        }
+     };
+     fetchUser();
+     const { data: authListener } = supabase.auth.onAuthStateChange(
+         (event, session) => {
+             if (isMounted) {
+                 setUser(session?.user ?? null);
+                 // Maybe close modal if user logs in/out while it's open?
+                 // if(isAuthModalOpen) setIsAuthModalOpen(false); 
+             }
+         }
+     );
+     return () => { 
+         isMounted = false;
+         authListener.subscription.unsubscribe(); 
+     };
+  }, []);
+
+  const openModal = (mode: 'login' | 'signup') => {
+    setAuthModalMode(mode);
+    setIsAuthModalOpen(true);
+  };
+
+  const handleInitiateJoin = () => {
+    if (!user) {
+      openModal('login'); 
+      return false; 
+    }
+    return true; 
+  };
+
+  const handleInitiateCreate = () => {
+    if (!user) {
+      openModal('login'); 
+      return false; 
+    }
+    return true; 
+  };
+  
+  // Optional: Show a loading indicator for the whole page?
+  // if (loadingUser) return <div>Loading...</div>;
+
   return (
     <main className="min-h-screen w-full touch-auto">
       {/* Fixed background */}
@@ -16,13 +84,17 @@ export default function Page() {
       {/* Subtle radial gradient for center focus */}
       <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_center,rgba(59,130,246,0.05)_0%,rgba(15,23,42,0.2)_70%)]"></div>
       
-      {/* Very subtle noise texture */}
-      <div className="fixed inset-0 bg-[url('/subtle-noise.png')] opacity-[0.03]"></div>
-      
       {/* Decorative glow elements positioned strategically */}
       <div className="fixed top-[10%] left-[15%] w-[40rem] h-[40rem] bg-blue-600/10 rounded-full blur-[8rem]"></div>
       <div className="fixed bottom-[15%] right-[10%] w-[35rem] h-[35rem] bg-violet-600/10 rounded-full blur-[8rem]"></div>
       <div className="fixed top-[40%] right-[20%] w-[25rem] h-[25rem] bg-indigo-600/10 rounded-full blur-[6rem]"></div>
+
+      {/* Render the Modal */}
+      <AuthModal 
+        open={isAuthModalOpen} 
+        onOpenChange={setIsAuthModalOpen}
+        initialMode={authModalMode} 
+      />
 
       <div className="relative w-full max-w-7xl mx-auto px-4 py-12 md:py-24 flex flex-col items-center">
         {/* Hero Section */}
@@ -68,7 +140,7 @@ export default function Page() {
               <p className="text-white/70 mb-6">
                 Enter your team code to access your team&apos;s lineups
               </p>
-              <JoinTeamForm />
+              <JoinTeamForm onInitiateSubmit={handleInitiateJoin} />
             </div>
           </div>
 
@@ -90,7 +162,7 @@ export default function Page() {
               <p className="text-white/70 mb-6">
                 Start a new team and invite your players
               </p>
-              <CreateTeamForm />
+              <CreateTeamForm onInitiateSubmit={handleInitiateCreate} />
             </div>
           </div>
 

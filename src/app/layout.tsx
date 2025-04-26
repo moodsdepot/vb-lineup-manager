@@ -1,5 +1,6 @@
 import { Metadata, Viewport } from 'next';
 import './globals.css';
+import AuthClientWrapper from '@/components/auth/AuthClientWrapper';
 
 // --- Define metadataBase with your actual domain ---
 const productionUrl = process.env.NODE_ENV === 'production' 
@@ -16,9 +17,6 @@ export const metadata: Metadata = {
     template: '%s | LineupMan'
   },
   description: 'Create, manage, and share your volleyball lineups with ease. A simple, intuitive tool for volleyball coaches.',
-  keywords: ['volleyball', 'lineup', 'rotation', 'sports', 'coaching', 'team management', 'volleyball positions'],
-  authors: [{ name: 'LineupMan' }],
-  creator: 'LineupMan',
   
   icons: {
     icon: '/volleyball-logo.png', 
@@ -29,6 +27,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: 'website',
     locale: 'en_US',
+    url: 'https://your-domain.com',
     title: 'LineupMan - Volleyball Lineup Manager',
     description: 'Create, manage, and share your volleyball lineups with ease',
     siteName: 'LineupMan',
@@ -48,15 +47,21 @@ export const metadata: Metadata = {
     description: 'Create, manage, and share your volleyball lineups with ease',
     images: ['/volleyball-logo.png'], 
   },
+  
+  keywords: ['volleyball', 'lineup', 'rotation', 'sports', 'coaching', 'team management', 'volleyball positions'],
+  authors: [{ name: 'LineupMan' }],
+  creator: 'LineupMan',
+  
+  viewport: {
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 1,
+    userScalable: false,
+  },
 };
 
-// --- Define Viewport Separately ---
-export const viewport: Viewport = {
-  width: 'device-width',
-  initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
-};
+// --- Viewport (unchanged) ---
+export const viewport: Viewport = { /* ... */ };
 
 // --- Root Layout Component ---
 export default function RootLayout({
@@ -66,7 +71,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="min-h-screen bg-background text-foreground antialiased overflow-auto touch-pan-y">
+      <body className="min-h-screen bg-background text-foreground antialiased overflow-auto touch-pan-y relative">
+        <AuthClientWrapper />
         {children}
       </body>
     </html>
