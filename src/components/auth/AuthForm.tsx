@@ -53,19 +53,34 @@ export default function AuthForm({ initialMode = 'login', onSuccess }: AuthFormP
           router.refresh();
       }
 
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Auth Error:", err);
-      // Provide more user-friendly errors
-      if (err.message?.includes('Email rate limit exceeded')) {
-          setError('Too many attempts. Please wait a moment and try again.');
-      } else if (err.message?.includes('Invalid login credentials')) {
-           setError('Invalid email or password.');
-      } else if (err.message?.includes('User already registered')) {
-           setError('An account with this email already exists. Try logging in.');
-           setIsSignUp(false); // Switch to login view
+      // Type checking for error message
+      let errorMessage = 'Authentication failed. Please try again.';
+      if (err instanceof Error) { 
+          // Use specific checks based on Supabase error structure if possible
+          // For now, use the generic message
+          errorMessage = err.message; 
+          // Add specific checks based on err.message content
+           if (errorMessage?.includes('Email rate limit exceeded')) {
+               setError('Too many attempts. Please wait a moment and try again.');
+               errorMessage = ''; // Clear generic message if specific one is set
+           } else if (errorMessage?.includes('Invalid login credentials')) {
+                setError('Invalid email or password.');
+                errorMessage = ''; 
+           } else if (errorMessage?.includes('User already registered')) {
+                setError('An account with this email already exists. Try logging in.');
+                setIsSignUp(false); 
+                errorMessage = ''; 
+           } else {
+               // Use the caught error message if not handled specifically
+               setError(errorMessage);
+           }
       } else {
-           setError('Authentication failed. Please try again.');
+         // Handle non-Error types if necessary
+         setError('An unexpected error occurred.');
       }
+      
     } finally {
       setIsLoading(false);
     }

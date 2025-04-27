@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import type { User, SupabaseClient } from '@supabase/supabase-js';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import { useRouter } from 'next/navigation'; // Use App Router router
 
 // Define props if needed, e.g., for styling variations

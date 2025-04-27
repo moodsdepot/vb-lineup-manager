@@ -11,8 +11,6 @@ import type { User } from '@supabase/supabase-js';
 
 export default function Page() {
   const [user, setUser] = useState<User | null>(null);
-  const [loadingUser, setLoadingUser] = useState(true);
-  
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<'login' | 'signup'>('login');
 
@@ -28,8 +26,6 @@ export default function Page() {
              }
         } catch (err) {
             console.error("Error getting session on page load:", err);
-        } finally {
-             if (isMounted) setLoadingUser(false);
         }
      };
      fetchUser();
