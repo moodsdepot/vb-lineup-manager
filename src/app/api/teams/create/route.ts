@@ -50,7 +50,8 @@ export async function POST(request: Request) {
          // Use basic client for RPC
          const supabaseAdmin = createClient<Database>(supabaseUrl, supabaseAnonKey); 
 
-        const { data: rpcData, error: rpcError } = await supabaseAdmin.rpc('create_team_and_add_owner', {
+        // Call the RPC function - expect data to be the UUID string directly
+        const { data: newTeamId, error: rpcError } = await supabaseAdmin.rpc('create_team_and_add_owner', {
             p_team_name: teamName,
             p_team_code: teamCode,
             p_user_id: userId 
@@ -58,11 +59,13 @@ export async function POST(request: Request) {
 
         if (rpcError) throw rpcError;
 
-        const typedRpcData = rpcData as CreateTeamRpcResult | null;
-        if (!typedRpcData || typedRpcData.length === 0 || !typedRpcData[0].new_team_id) {
-           throw new Error('Team creation RPC returned unexpected data.');
+        // Check if the returned data is a non-empty string (the UUID)
+        if (typeof newTeamId !== 'string' || !newTeamId) { 
+            console.error("RPC Error: Did not return a valid team ID string. Received:", newTeamId);
+            throw new Error('Team creation RPC did not return a valid team ID.');
         }
-        const newTeamId = typedRpcData[0].new_team_id;
+        
+        console.log(`API Route: Team created successfully with ID: ${newTeamId}`);
         
         // 3. Return Success Response
         return NextResponse.json({ success: true, teamId: newTeamId }, { status: 201 });
