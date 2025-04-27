@@ -140,7 +140,10 @@ export default function Page() {
               <p className="text-white/70 mb-6">
                 Enter your team code to access your team&apos;s lineups
               </p>
-              <JoinTeamForm onInitiateSubmit={handleInitiateJoin} />
+              <JoinTeamForm 
+                onInitiateSubmit={handleInitiateJoin} 
+                userId={user?.id}
+              />
             </div>
           </div>
 
