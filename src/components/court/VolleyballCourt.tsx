@@ -1,8 +1,6 @@
 // src/components/court/VolleyballCourt.tsx
 'use client';
 
-import { DndProvider } from 'react-dnd';
-import { HTML5Backend } from 'react-dnd-html5-backend';
 import { useState, useRef, useEffect } from 'react';
 import type { PlayerToken as PlayerTokenType } from '@/types/volleyball';
 import PlayerTokenComponent from '@/components/players/PlayerToken';

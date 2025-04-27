@@ -9,7 +9,6 @@ import { HTML5Backend } from 'react-dnd-html5-backend'; // Import Backend here
 import type { PlayerToken } from '@/types/volleyball'; // Import player type
 import { getSupabaseBrowserClient } from '@/lib/supabase'; // Import client getter
 import { useRouter } from 'next/navigation'; // Import router for redirects
-import type { Database } from '@/types/supabase'; // Import DB Types
 
 // Define the props this component now receives
 interface VolleyballCourtPageClientProps {
