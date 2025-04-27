@@ -3,11 +3,13 @@
 
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import type { PlayerToken as PlayerTokenType } from '@/types/volleyball';
 import PlayerTokenComponent from '@/components/players/PlayerToken';
 import EditPlayerDialog from '@/components/players/EditPlayerDialog';
 import DrawingCanvas from './DrawingCanvas';
+import { getSupabaseBrowserClient } from '@/lib/supabase';
+import { Button } from '@/components/ui/button';
 
 // Define the default court positions that players will rotate into
 const DEFAULT_POSITIONS = [
@@ -19,25 +21,34 @@ const DEFAULT_POSITIONS = [
   { x: 33, y: 75 },  // Position 5
 ];
 
-export default function VolleyballCourt() {
-  const [players, setPlayers] = useState<PlayerTokenType[]>([
-    { id: '1', number: "10", position: "MB", x: 33, y: 45 },  // Position 4
-    { id: '2', number: "14", position: "S", x: 50, y: 45 },   // Position 3
-    { id: '3', number: "7", position: "OH", x: 67, y: 45 },   // Position 2
-    { id: '4', number: "4", position: "OPP", x: 67, y: 75 },  // Position 1
-    { id: '5', number: "12", position: "L", x: 50, y: 75 },   // Position 6
-    { id: '6', number: "2", position: "OH", x: 33, y: 75 },   // Position 5
-  ]);
+// Define the props the component now accepts
+interface VolleyballCourtProps {
+  teamId: string; // Can be 'demo' or a real UUID
+  initialPlayers: PlayerTokenType[];
+  lineupId: string | null | undefined; // ID of the lineup being edited, or null/undefined if new
+}
 
+export default function VolleyballCourt({ teamId, initialPlayers, lineupId: initialLineupId }: VolleyballCourtProps) {
+  // Initialize players state with the data passed from the parent
+  const [players, setPlayers] = useState<PlayerTokenType[]>(initialPlayers);
+  // Keep track of the lineup ID for saving
+  const [currentLineupId, setCurrentLineupId] = useState<string | null | undefined>(initialLineupId);
   const [editingPlayer, setEditingPlayer] = useState<PlayerTokenType | null>(null);
   const [swapMode, setSwapMode] = useState<{
     active: boolean;
     firstPlayer?: PlayerTokenType;
   }>({ active: false });
-
   const [isDrawing, setIsDrawing] = useState(false);
   const [drawingColor, setDrawingColor] = useState('#ffffff');
+  const [isSaving, setIsSaving] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const isDemoMode = teamId === 'demo' || !teamId || !teamId.includes('-'); // More robust check for UUID format
+
+  // Update players state if initialPlayers prop changes (e.g., navigating between different lineups later)
+  useEffect(() => {
+    setPlayers(initialPlayers);
+    setCurrentLineupId(initialLineupId);
+  }, [initialPlayers, initialLineupId]);
 
   const colors = [
     { name: 'White', value: '#ffffff' },
@@ -142,192 +153,255 @@ export default function VolleyballCourt() {
     setIsDrawing(false);
   };
 
+  const handleSaveLineup = async () => {
+    if (isDemoMode) {
+      alert("Saving is disabled in demo mode.");
+      console.log("Save prevented in demo mode.");
+      return;
+    }
+    setIsSaving(true);
+    const supabase = getSupabaseBrowserClient();
+    console.log(`Saving lineup. Current ID: ${currentLineupId}, Team ID: ${teamId}`);
+
+    // Prepare data, ensuring players array is valid JSON
+    const lineupData = {
+      team_id: teamId,
+      players: players,
+      name: 'Default Lineup',
+      updated_at: new Date().toISOString(), 
+    };
+
+    try {
+      let resultError;
+      let resultData;
+
+      if (currentLineupId) {
+        console.log("Attempting to UPDATE lineup:", currentLineupId);
+        const { data, error } = await supabase
+          .from('lineups')
+          .update({ 
+              players: lineupData.players, 
+              name: lineupData.name,
+              updated_at: lineupData.updated_at 
+            })
+          .eq('id', currentLineupId)
+          .select('id')
+          .single();
+        resultError = error;
+        resultData = data;
+        if (!error) console.log("Update successful:", resultData);
+
+      } else {
+        console.log("Attempting to INSERT new lineup for team:", teamId);
+        const { data, error } = await supabase
+          .from('lineups')
+          .insert({ 
+              team_id: lineupData.team_id, 
+              players: lineupData.players, 
+              name: lineupData.name, 
+              updated_at: lineupData.updated_at,
+              created_at: new Date().toISOString()
+            })
+          .select('id')
+          .single();
+        resultError = error;
+        resultData = data;
+        if (!error && resultData?.id) {
+             console.log("Insert successful, new lineup ID:", resultData.id);
+             setCurrentLineupId(resultData.id);
+        }
+      }
+
+      if (resultError) throw resultError;
+
+      alert('Lineup saved successfully!'); 
+
+    } catch (err: unknown) {
+      console.error("Error saving lineup:", err);
+      const message = err instanceof Error ? err.message : 'Unknown error saving lineup.';
+      alert(`Failed to save lineup: ${message}`);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   return (
-    <DndProvider backend={HTML5Backend}>
-      <div className="w-full max-w-2xl mx-auto space-y-4">
-        {/* Instructions panel - moved to top */}
-        <div className="px-4">
-          <div className="bg-background/80 backdrop-blur-sm rounded-lg p-3 text-sm text-white/80">
-            <div className="flex flex-col gap-1.5">
-              <p className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-primary/80"></span>
-                Single tap to swap players
-              </p>
-              <p className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-primary/80"></span>
-                Double tap to edit player
-              </p>
-            </div>
+    <div className="w-full max-w-2xl mx-auto space-y-4">
+      <div className="px-4">
+        <div className="bg-background/80 backdrop-blur-sm rounded-lg p-3 text-sm text-white/80">
+          <div className="flex flex-col gap-1.5">
+            <p className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-primary/80"></span>
+              Single tap to swap players
+            </p>
+            <p className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-primary/80"></span>
+              Double tap to edit player
+            </p>
           </div>
         </div>
+      </div>
 
-        {/* Action buttons - fixed width and consistent spacing */}
-        <div className="px-4 flex flex-wrap items-center justify-end gap-2">
-          {swapMode.active && (
-            <button
-              onClick={() => setSwapMode({ active: false })}
-              className="h-10 px-4 bg-destructive text-destructive-foreground rounded-lg"
-              disabled={editingPlayer !== null}
-            >
-              Cancel Swap
-            </button>
-          )}
+      <div className="px-4 flex flex-wrap items-center justify-end gap-2">
+        <Button onClick={handleSaveLineup} disabled={isSaving || isDemoMode} variant="outline" size="sm" className="bg-green-600 hover:bg-green-700 border-green-700 text-white">
+          {isSaving ? 'Saving...' : 'Save Lineup'}
+        </Button>
 
+        {swapMode.active && (
           <button
-            onClick={handleRotation}
-            className="h-10 px-4 bg-primary text-primary-foreground rounded-lg 
-                     flex items-center justify-center gap-2"
+            onClick={() => setSwapMode({ active: false })}
+            className="h-10 px-4 bg-destructive text-destructive-foreground rounded-lg"
+            disabled={editingPlayer !== null}
           >
-            <svg 
-              className="w-5 h-5" 
-              fill="none" 
-              viewBox="0 0 24 24" 
-              stroke="currentColor"
-            >
-              <path 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
-                strokeWidth={2} 
-                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" 
-              />
-            </svg>
-            Rotate
+            Cancel Swap
           </button>
+        )}
 
-          <button
-            onClick={() => isDrawing ? handleClearDrawing() : setIsDrawing(true)}
-            className="h-10 px-4 bg-secondary text-secondary-foreground rounded-lg"
-          >
-            {isDrawing ? 'Clear Drawing' : 'Draw'}
-          </button>
-
-          {isDrawing && (
-            <div className="flex gap-1">
-              {colors.map((color) => (
-                <button
-                  key={color.value}
-                  onClick={() => setDrawingColor(color.value)}
-                  className={`w-10 h-10 rounded-lg border-2 ${
-                    drawingColor === color.value ? 'border-primary' : 'border-transparent'
-                  }`}
-                  style={{ backgroundColor: color.value }}
-                  title={color.name}
-                />
-              ))}
-            </div>
-          )}
-        </div>
-
-        <div className="relative court-container">
+        <button
+          onClick={handleRotation}
+          className="h-10 px-4 bg-primary text-primary-foreground rounded-lg 
+                   flex items-center justify-center gap-2"
+        >
           <svg 
-            viewBox="0 0 300 300" 
-            className="w-full h-full volleyball-court z-10"
-            preserveAspectRatio="xMidYMid meet"
+            className="w-5 h-5" 
+            fill="none" 
+            viewBox="0 0 24 24" 
+            stroke="currentColor"
           >
-            {/* Court background with wooden texture gradient */}
-            <defs>
-              <linearGradient id="woodGrain" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" style={{ stopColor: '#deb887', stopOpacity: 0.9 }} />
-                <stop offset="50%" style={{ stopColor: '#d2691e', stopOpacity: 0.9 }} />
-                <stop offset="100%" style={{ stopColor: '#deb887', stopOpacity: 0.9 }} />
-              </linearGradient>
-            </defs>
-
-            {/* Main court */}
-            <rect 
-              x="25" y="50" 
-              width="250" height="225" 
-              fill="url(#woodGrain)"
-              stroke="#333" 
-              strokeWidth="2" 
+            <path 
+              strokeLinecap="round" 
+              strokeLinejoin="round" 
+              strokeWidth={2} 
+              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" 
             />
-    
-            {/* Opponent's court section */}
-            <rect 
-              x="25" y="25" 
-              width="250" height="25" 
-              fill="url(#woodGrain)"
-              stroke="#333" 
-              strokeWidth="2" 
-            />
-
-            {/* Net */}
-            <line 
-              x1="25" y1="50" 
-              x2="275" y2="50" 
-              stroke="#fff" 
-              strokeWidth="3" 
-              strokeDasharray="8 6" 
-            />
-
-            {/* 10-foot (attack) line */}
-            <line 
-              x1="25" y1="125" 
-              x2="275" y2="125" 
-              stroke="#333" 
-              strokeWidth="1.5" 
-              strokeDasharray="2 2"
-            />
-
-            {/* Position numbers - more subtle */}
-            {[
-              { x: 225, y: 200, label: "1" },
-              { x: 150, y: 200, label: "6" },
-              { x: 75, y: 200, label: "5" },
-              { x: 225, y: 85, label: "2" },
-              { x: 150, y: 85, label: "3" },
-              { x: 75, y: 85, label: "4" },
-            ].map((pos, i) => (
-              <text
-                key={i}
-                x={pos.x}
-                y={pos.y}
-                fontSize="16"
-                textAnchor="middle"
-                alignmentBaseline="middle"
-                fill="rgba(139, 69, 19, 0.3)"  // Dark brown with low opacity
-                className="select-none"
-              >
-                {pos.label}
-              </text>
-            ))}
-
-            {/* Court side markers */}
-            <circle cx="25" cy="50" r="4" fill="#333" />
-            <circle cx="275" cy="50" r="4" fill="#333" />
           </svg>
+          Rotate
+        </button>
 
-          {/* Player Tokens */}
-          <div className="absolute inset-0">
-            {players.map((player) => (
-              <PlayerTokenComponent 
-                key={player.id}
-                player={player}
-                onMove={(x, y) => handlePlayerMove(player.id, x, y)}
-                onClick={() => handlePlayerClick(player)}
-                onDoubleClick={() => handlePlayerEdit(player)}
-                selected={swapMode.firstPlayer?.id === player.id}
+        <button
+          onClick={() => isDrawing ? handleClearDrawing() : setIsDrawing(true)}
+          className="h-10 px-4 bg-secondary text-secondary-foreground rounded-lg"
+        >
+          {isDrawing ? 'Clear Drawing' : 'Draw'}
+        </button>
+
+        {isDrawing && (
+          <div className="flex gap-1">
+            {colors.map((color) => (
+              <button
+                key={color.value}
+                onClick={() => setDrawingColor(color.value)}
+                className={`w-10 h-10 rounded-lg border-2 ${
+                  drawingColor === color.value ? 'border-primary' : 'border-transparent'
+                }`}
+                style={{ backgroundColor: color.value }}
+                title={color.name}
               />
             ))}
           </div>
-
-          {/* Drawing Canvas */}
-          {isDrawing && <DrawingCanvas isDrawing={isDrawing} color={drawingColor} />}
-        </div>
-
-        {editingPlayer && (
-          <EditPlayerDialog
-            player={editingPlayer}
-            isOpen={true}
-            onClose={() => {
-              setEditingPlayer(null);
-              setSwapMode({ active: false });
-            }}
-            onSave={handleSavePlayer}
-          />
         )}
       </div>
-    </DndProvider>
+
+      <div className="relative court-container">
+        <svg 
+          viewBox="0 0 300 300" 
+          className="w-full h-full volleyball-court z-10"
+          preserveAspectRatio="xMidYMid meet"
+        >
+          <defs>
+            <linearGradient id="woodGrain" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" style={{ stopColor: '#deb887', stopOpacity: 0.9 }} />
+              <stop offset="50%" style={{ stopColor: '#d2691e', stopOpacity: 0.9 }} />
+              <stop offset="100%" style={{ stopColor: '#deb887', stopOpacity: 0.9 }} />
+            </linearGradient>
+          </defs>
+
+          <rect 
+            x="25" y="50" 
+            width="250" height="225" 
+            fill="url(#woodGrain)"
+            stroke="#333" 
+            strokeWidth="2" 
+          />
+    
+          <rect 
+            x="25" y="25" 
+            width="250" height="25" 
+            fill="url(#woodGrain)"
+            stroke="#333" 
+            strokeWidth="2" 
+          />
+
+          <line 
+            x1="25" y1="50" 
+            x2="275" y2="50" 
+            stroke="#fff" 
+            strokeWidth="3" 
+            strokeDasharray="8 6" 
+          />
+
+          <line 
+            x1="25" y1="125" 
+            x2="275" y2="125" 
+            stroke="#333" 
+            strokeWidth="1.5" 
+            strokeDasharray="2 2"
+          />
+
+          {[
+            { x: 225, y: 200, label: "1" },
+            { x: 150, y: 200, label: "6" },
+            { x: 75, y: 200, label: "5" },
+            { x: 225, y: 85, label: "2" },
+            { x: 150, y: 85, label: "3" },
+            { x: 75, y: 85, label: "4" },
+          ].map((pos, i) => (
+            <text
+              key={i}
+              x={pos.x}
+              y={pos.y}
+              fontSize="16"
+              textAnchor="middle"
+              alignmentBaseline="middle"
+              fill="rgba(139, 69, 19, 0.3)"
+              className="select-none"
+            >
+              {pos.label}
+            </text>
+          ))}
+
+          <circle cx="25" cy="50" r="4" fill="#333" />
+          <circle cx="275" cy="50" r="4" fill="#333" />
+        </svg>
+
+        <div className="absolute inset-0">
+          {players.map((player) => (
+            <PlayerTokenComponent 
+              key={player.id}
+              player={player}
+              onMove={(x, y) => handlePlayerMove(player.id, x, y)}
+              onClick={() => handlePlayerClick(player)}
+              onDoubleClick={() => handlePlayerEdit(player)}
+              selected={swapMode.firstPlayer?.id === player.id}
+            />
+          ))}
+        </div>
+
+        {isDrawing && <DrawingCanvas isDrawing={isDrawing} color={drawingColor} />}
+      </div>
+
+      {editingPlayer && (
+        <EditPlayerDialog
+          player={editingPlayer}
+          isOpen={true}
+          onClose={() => {
+            setEditingPlayer(null);
+            setSwapMode({ active: false });
+          }}
+          onSave={handleSavePlayer}
+        />
+      )}
+    </div>
   );
 }
   
