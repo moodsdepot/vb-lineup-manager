@@ -6,14 +6,8 @@
 import { notFound } from 'next/navigation'; // Keep notFound
 import VolleyballCourtPageClient from "@/components/pages/VolleyballCourtPageClient"; 
 
-interface VolleyballCourtTeamPageProps {
-  params: {
-    teamId: string; 
-  };
-}
-
-// This component is now synchronous and doesn't fetch data
-export default function VolleyballCourtTeamPage({ params }: VolleyballCourtTeamPageProps) {
+// Type the props directly in the function signature
+export default function VolleyballCourtTeamPage({ params }: { params: { teamId: string } }) {
   const { teamId } = params; 
 
   // Basic validation of teamId format (optional but good)
