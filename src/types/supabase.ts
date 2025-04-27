@@ -127,7 +127,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      create_team_and_add_owner: {
+        Args: { p_team_name: string; p_team_code: string; p_user_id: string }
+        Returns: string
+      }
+      join_team: {
+        Args: { p_team_code: string; p_user_id: string }
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never
