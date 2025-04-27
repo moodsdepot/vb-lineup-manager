@@ -9,6 +9,8 @@ import { HTML5Backend } from 'react-dnd-html5-backend'; // Import Backend here
 import type { PlayerToken } from '@/types/volleyball'; // Import player type
 import { getSupabaseBrowserClient } from '@/lib/supabase'; // Import client getter
 import { useRouter } from 'next/navigation'; // Import router for redirects
+import type { SupabaseClient } from '@supabase/supabase-js'; // Import type
+import type { Database } from '@/types/supabase'; // <-- ADD THIS IMPORT BACK
 
 // Define the props this component now receives
 interface VolleyballCourtPageClientProps {
@@ -43,9 +45,18 @@ export default function VolleyballCourtPageClient({ teamId }: VolleyballCourtPag
      isDemoMode ? { teamName: 'Demo Team', lineupId: null, players: DEFAULT_PLAYERS } : null
   );
   const router = useRouter();
-  const supabase = getSupabaseBrowserClient(); // Get client instance
+  const [supabase, setSupabase] = useState<SupabaseClient<Database> | null>(null); // Keep this state
 
   useEffect(() => {
+    // --- Initialize Supabase Client HERE ---
+    const client = getSupabaseBrowserClient(); 
+    setSupabase(client);
+    // --- End Initialization ---
+
+    // Don't proceed if client couldn't be initialized (already handled by error in getter)
+    if (!client) return; 
+
+    // --- Rest of the useEffect logic ---
     if (!isDemoMode && teamId && !fetchedData) { 
         let isMounted = true;
         console.log(`[Client Page /court/${teamId}] useEffect running for fetch.`);
@@ -53,7 +64,8 @@ export default function VolleyballCourtPageClient({ teamId }: VolleyballCourtPag
             setLoading(true); 
             setError(null);
              try {
-                 const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+                 // Use the 'client' instance directly here
+                 const { data: { session }, error: sessionError } = await client.auth.getSession();
                  if (!isDemoMode && (sessionError || !session?.user)) { 
                     if(isMounted) setError("You must be logged in to view this team.");
                     setLoading(false); return; 
@@ -61,8 +73,7 @@ export default function VolleyballCourtPageClient({ teamId }: VolleyballCourtPag
                  
                  console.log(`[Client Page /court/${teamId}] Fetching team data...`);
                  // --- CORRECTED QUERY ---
-                 const { data: teamData, error: teamError } = await supabase
-                    .from('teams')
+                 const { data: teamData, error: teamError } = await client.from('teams')
                     .select(`
                         name, 
                         lineups ( id, name, players ) 
@@ -98,7 +109,7 @@ export default function VolleyballCourtPageClient({ teamId }: VolleyballCourtPag
     } else if (isDemoMode) {
          setLoading(false);
     }
-  }, [teamId, supabase, router, fetchedData, isDemoMode]); 
+  }, [teamId, router, fetchedData, isDemoMode]); // Remove supabase state from deps, add isDemoMode
 
   // --- Render Logic ---
 
@@ -119,13 +130,6 @@ export default function VolleyballCourtPageClient({ teamId }: VolleyballCourtPag
 
   const currentData = fetchedData ?? { teamName: 'Demo Team', lineupId: null, players: DEFAULT_PLAYERS };
   const displayTeamName = isDemoMode ? 'Demo Mode' : (currentData.teamName ?? 'Unnamed Team');
-
-  // playersToLoad logic remains the same, will now use new defaults if needed
-  const playersToLoad = currentData.players && currentData.players.length === 6 
-    ? currentData.players 
-    : DEFAULT_PLAYERS; 
-    
-  const lineupIdToLoad = currentData.lineupId; 
 
   // Data is loaded, render the court
   return (
@@ -167,12 +171,26 @@ export default function VolleyballCourtPageClient({ teamId }: VolleyballCourtPag
           </header>
           
           <div className="bg-card rounded-lg shadow-xl p-6">
-             {/* Render the VolleyballCourt, passing necessary props */}
-            <VolleyballCourt 
-               teamId={isDemoMode ? 'demo' : teamId!} 
-               initialPlayers={playersToLoad} // Pass potentially updated defaults
-               lineupId={lineupIdToLoad} 
-            />
+            {/* Don't render court until supabase client is ready, needed for save */}
+            {supabase && ( 
+               <VolleyballCourt 
+                 teamId={isDemoMode ? 'demo' : teamId!} 
+                 initialPlayers={currentData.players} 
+                 lineupId={isDemoMode ? null : currentData.lineupId} 
+               />
+            )}
+            {!supabase && !loading && !isDemoMode && (
+                 // Optional: Show message if client fails to init for non-demo
+                 <p>Error initializing court.</p> 
+            )}
+             {!supabase && isDemoMode && (
+                 // Render even if client isn't ready for demo, saving is disabled anyway
+                  <VolleyballCourt 
+                   teamId={'demo'} 
+                   initialPlayers={currentData.players} 
+                   lineupId={null} 
+                 />
+            )}
           </div>
         </div>
       </main>
