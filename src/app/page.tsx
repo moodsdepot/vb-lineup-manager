@@ -162,7 +162,10 @@ export default function Page() {
               <p className="text-white/70 mb-6">
                 Start a new team and invite your players
               </p>
-              <CreateTeamForm onInitiateSubmit={handleInitiateCreate} />
+              <CreateTeamForm 
+                onInitiateSubmit={handleInitiateCreate} 
+                userId={user?.id}
+              />
             </div>
           </div>
 
