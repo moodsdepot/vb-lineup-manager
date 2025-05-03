@@ -25,7 +25,7 @@ export default function AuthModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px] bg-gradient-to-b from-blue-950 via-indigo-900 to-blue-900 border-white/10 text-white rounded-lg shadow-xl"> 
+      <DialogContent className="sm:max-w-sm p-0 overflow-hidden rounded-xl shadow-xl border border-white/10 bg-blue-950/80 backdrop-blur-lg"> 
         <DialogHeader className="sr-only">
           <DialogTitle>Authentication</DialogTitle>
           <DialogDescription>

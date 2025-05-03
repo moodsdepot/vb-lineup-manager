@@ -131,7 +131,6 @@ export default function Page() {
                   </div>
                   <h2 className="font-satoshi font-bold text-2xl text-white">Join Team</h2>
                 </div>
-                <span className="text-xs font-medium bg-blue-500/20 text-blue-300 rounded-full px-2 py-1">Coming Soon</span>
               </div>
               <p className="text-white/70 mb-6">
                 Enter your team code to access your team&apos;s lineups
@@ -156,7 +155,6 @@ export default function Page() {
                   </div>
                   <h2 className="font-satoshi font-bold text-2xl text-white">Create Team</h2>
                 </div>
-                <span className="text-xs font-medium bg-violet-500/20 text-violet-300 rounded-full px-2 py-1">Coming Soon</span>
               </div>
               <p className="text-white/70 mb-6">
                 Start a new team and invite your players

@@ -20,6 +20,7 @@ interface VolleyballCourtPageClientProps {
 // Define shape for fetched data state
 interface FetchedData {
   teamName: string | null;
+  teamCode: string | null;
   lineupId: string | null;
   players: PlayerToken[];
 }
@@ -42,7 +43,7 @@ export default function VolleyballCourtPageClient({ teamId }: VolleyballCourtPag
   const [loading, setLoading] = useState(!isDemoMode); 
   const [error, setError] = useState<string | null>(null);
   const [fetchedData, setFetchedData] = useState<FetchedData | null>(
-     isDemoMode ? { teamName: 'Demo Team', lineupId: null, players: DEFAULT_PLAYERS } : null
+     isDemoMode ? { teamName: 'Demo Team', teamCode: 'DEMO', lineupId: null, players: DEFAULT_PLAYERS } : null
   );
   const router = useRouter();
   const [supabase, setSupabase] = useState<SupabaseClient<Database> | null>(null); // Keep this state
@@ -76,6 +77,7 @@ export default function VolleyballCourtPageClient({ teamId }: VolleyballCourtPag
                  const { data: teamData, error: teamError } = await client.from('teams')
                     .select(`
                         name, 
+                        code,
                         lineups ( id, name, players ) 
                     `) 
                     .eq('id', teamId) // Filter by teamId
@@ -93,6 +95,7 @@ export default function VolleyballCourtPageClient({ teamId }: VolleyballCourtPag
                   if(isMounted) {
                       setFetchedData({
                           teamName: teamData.name,
+                          teamCode: teamData.code,
                           lineupId: initialLineup?.id ?? null,
                           players: validatedPlayers && validatedPlayers.length === 6 ? validatedPlayers : DEFAULT_PLAYERS
                       });
@@ -128,7 +131,7 @@ export default function VolleyballCourtPageClient({ teamId }: VolleyballCourtPag
        return <div className="min-h-screen flex items-center justify-center">Could not load team data.</div>;
   }
 
-  const currentData = fetchedData ?? { teamName: 'Demo Team', lineupId: null, players: DEFAULT_PLAYERS };
+  const currentData = fetchedData ?? { teamName: 'Demo Team', teamCode: 'DEMO', lineupId: null, players: DEFAULT_PLAYERS };
   const displayTeamName = isDemoMode ? 'Demo Mode' : (currentData.teamName ?? 'Unnamed Team');
 
   // Data is loaded, render the court
@@ -168,6 +171,19 @@ export default function VolleyballCourtPageClient({ teamId }: VolleyballCourtPag
             <p className="text-muted-foreground">
               {isDemoMode ? 'Try out the court features (no saving)' : `Manage your lineup for ${currentData.teamName ?? 'this team'}`}
             </p>
+            {/* --- Display Team Code --- */}
+            {!isDemoMode && currentData.teamCode && (
+               <div className="mt-2 text-center">
+                  <p className="text-sm text-muted-foreground">
+                     Team Code: 
+                     <strong className="ml-2 font-mono text-base text-foreground bg-muted px-2 py-1 rounded">
+                         {currentData.teamCode}
+                     </strong> 
+                     {/* TODO: Add a 'Copy Code' button later */}
+                  </p>
+               </div>
+            )}
+            {/* --- End Display Team Code --- */}
           </header>
           
           <div className="bg-card rounded-lg shadow-xl p-6">

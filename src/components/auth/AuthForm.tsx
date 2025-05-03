@@ -29,28 +29,39 @@ export default function AuthForm({ initialMode = 'login', onSuccess }: AuthFormP
     const supabase = getSupabaseBrowserClient(); // Get client instance when needed
 
     try {
-      const { data, error: authError } = isSignUp
-        ? await supabase.auth.signUp({ email, password })
-        : await supabase.auth.signInWithPassword({ email, password });
+      if (isSignUp) {
+        const { data, error: signUpError } = await supabase.auth.signUp({ email, password });
+        if (signUpError) throw signUpError;
+        
+        if (data.user && data.user.aud !== 'authenticated') {
+          setMessage(
+            'Account created! Please check your email inbox (and spam folder) for a confirmation link to activate your account before logging in.'
+          );
+        } else {
+          setMessage('Signup successful! You are logged in.');
+          onSuccess?.(); 
+          router.refresh(); 
+        }
+      } else {
+        const { data, error: authError } = await supabase.auth.signInWithPassword({ email, password });
 
-      if (authError) throw authError;
+        if (authError) throw authError;
 
-      if (data.user) {
-         if (isSignUp && data.user.aud !== 'authenticated') {
-             setMessage('Signup successful! Check email for confirmation.');
-         } else {
-             setMessage(isSignUp ? 'Signup successful!' : 'Login successful!');
-             onSuccess?.(); 
-             router.refresh();
-         }
-      } else if (!isSignUp && !data.user && !data.session) {
-          setError('Login failed. Please check your credentials.');
-      } else if (isSignUp && !data.session) {
-          setMessage('Signup successful! Check email for confirmation (if needed) or try logging in.');
-      } else if (!isSignUp && data.session) {
-          setMessage('Login successful!');
-          onSuccess?.();
-          router.refresh();
+        if (data.user) {
+           if (data.user.aud !== 'authenticated') {
+               setMessage('Signup successful! Check email for confirmation.');
+           } else {
+               setMessage('Login successful!');
+               onSuccess?.(); 
+               router.refresh();
+           }
+        } else if (!data.user && !data.session) {
+            setError('Login failed. Please check your credentials.');
+        } else if (data.session) {
+            setMessage('Login successful!');
+            onSuccess?.();
+            router.refresh();
+        }
       }
 
     } catch (err: unknown) {
@@ -87,16 +98,16 @@ export default function AuthForm({ initialMode = 'login', onSuccess }: AuthFormP
   };
 
   return (
-    <Card className="w-full max-w-sm border-none shadow-none bg-transparent"> 
-      <CardHeader className="text-center">
-        <CardTitle>{isSignUp ? 'Create Account' : 'Login or Sign Up'}</CardTitle>
+    <Card className="w-full border-none shadow-none bg-transparent p-6 md:p-8"> 
+      <CardHeader className="text-center pt-0 px-0 pb-4"> 
+        <CardTitle>{isSignUp ? 'Create Account' : 'Login or Sign Up'}</CardTitle> 
         <CardDescription>
           {isSignUp 
              ? 'Enter your details to sign up.' 
              : 'Enter your credentials or sign up below.'}
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-4 px-0 pb-0"> 
         <form onSubmit={handleAuth} id={`auth-form-${initialMode}`} className="space-y-4">
           <div className="space-y-1">
             <Label htmlFor={`email-${initialMode}`}>Email</Label>
@@ -127,7 +138,7 @@ export default function AuthForm({ initialMode = 'login', onSuccess }: AuthFormP
          {message && <p className="text-sm text-center text-green-400 pt-2">{message}</p>}
          {error && <p className="text-sm text-center text-red-400 pt-2">{error}</p>}
       </CardContent>
-      <CardFooter className="flex flex-col gap-4">
+      <CardFooter className="flex flex-col gap-4 px-0 pb-0 pt-4"> 
          <Button 
             type="submit" 
             form={`auth-form-${initialMode}`} 
