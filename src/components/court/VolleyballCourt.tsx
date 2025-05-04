@@ -223,7 +223,7 @@ export default function VolleyballCourt({ teamId, initialPlayers, lineupId: init
     }
   };
 
-  return (
+    return (
     <div className="w-full max-w-2xl mx-auto space-y-4">
       <div className="px-4">
         <div className="bg-background/80 backdrop-blur-sm rounded-lg p-3 text-sm text-white/80">
@@ -321,7 +321,7 @@ export default function VolleyballCourt({ teamId, initialPlayers, lineupId: init
             stroke="#333" 
             strokeWidth="2" 
           />
-    
+  
           <rect 
             x="25" y="25" 
             width="250" height="25" 
@@ -337,7 +337,7 @@ export default function VolleyballCourt({ teamId, initialPlayers, lineupId: init
             strokeWidth="3" 
             strokeDasharray="8 6" 
           />
-
+  
           <line 
             x1="25" y1="125" 
             x2="275" y2="125" 
@@ -354,18 +354,18 @@ export default function VolleyballCourt({ teamId, initialPlayers, lineupId: init
             { x: 150, y: 85, label: "3" },
             { x: 75, y: 85, label: "4" },
           ].map((pos, i) => (
-            <text
+              <text
               key={i}
               x={pos.x}
               y={pos.y}
-              fontSize="16"
-              textAnchor="middle"
-              alignmentBaseline="middle"
+                fontSize="16"
+                textAnchor="middle"
+                alignmentBaseline="middle"
               fill="rgba(139, 69, 19, 0.3)"
               className="select-none"
-            >
+              >
               {pos.label}
-            </text>
+              </text>
           ))}
 
           <circle cx="25" cy="50" r="4" fill="#333" />
@@ -399,7 +399,7 @@ export default function VolleyballCourt({ teamId, initialPlayers, lineupId: init
           onSave={handleSavePlayer}
         />
       )}
-    </div>
-  );
-}
+      </div>
+    );
+  }
   
