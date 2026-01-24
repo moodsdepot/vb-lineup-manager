@@ -67,21 +67,21 @@ export default function Page() {
   };
 
   const handleQuickStart = async () => {
-    const supabase = getSupabaseBrowserClient();
     setQuickStartLoading(true);
     setQuickStartError(null);
 
     try {
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      if (sessionError) throw sessionError;
-
-      if (session?.user) {
-        router.push('/court');
-        return;
+      // Use server-side proxy to avoid client network/CORS quirks
+      const resp = await fetch('/api/auth/anonymous', { method: 'POST' });
+      if (!resp.ok) {
+        const body = await resp.json().catch(() => ({}));
+        throw new Error(body.error || 'Could not start anonymous session.');
       }
+      const { session } = await resp.json();
 
-      const { error } = await supabase.auth.signInAnonymously();
-      if (error) throw error;
+      const supabase = getSupabaseBrowserClient();
+      const { error: setError } = await supabase.auth.setSession(session);
+      if (setError) throw setError;
 
       router.push('/court');
     } catch (err) {
