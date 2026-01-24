@@ -9,7 +9,6 @@ const productionUrl = process.env.NODE_ENV === 'production'
 
 // --- Define Metadata ---
 export const metadata: Metadata = {
-  // Add metadataBase
   metadataBase: productionUrl,
   
   title: {
@@ -51,17 +50,15 @@ export const metadata: Metadata = {
   keywords: ['volleyball', 'lineup', 'rotation', 'sports', 'coaching', 'team management', 'volleyball positions'],
   authors: [{ name: 'LineupMan' }],
   creator: 'LineupMan',
-  
-  viewport: {
-    width: 'device-width',
-    initialScale: 1,
-    maximumScale: 1,
-    userScalable: false,
-  },
 };
 
-// --- Viewport (unchanged) ---
-export const viewport: Viewport = { /* ... */ };
+// --- Viewport ---
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+};
 
 // --- Root Layout Component ---
 export default function RootLayout({

@@ -31,12 +31,10 @@ export default function CreateTeamForm({ onInitiateSubmit, userId }: CreateTeamF
     const canProceed = onInitiateSubmit();
     if (!canProceed || !userId) {
       setFormState({ success: false, message: "User not available. Please log in.", errors: null });
-      onInitiateSubmit();
       return;
     }
 
     const formData = new FormData(event.currentTarget);
-    formData.append('userId', userId);
 
     startTransition(async () => {
       try {

@@ -33,13 +33,11 @@ export default function JoinTeamForm({ onInitiateSubmit, userId }: JoinTeamFormP
     const canProceed = onInitiateSubmit();
     if (!canProceed || !userId) {
       setFormState({ success: false, message: "User not available. Please log in.", errors: null });
-      onInitiateSubmit();
       return;
     }
 
     const formData = new FormData();
     formData.append('teamCode', code.trim().toUpperCase());
-    formData.append('userId', userId);
 
     startTransition(async () => {
       try {

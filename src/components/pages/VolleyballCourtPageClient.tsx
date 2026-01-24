@@ -119,7 +119,6 @@ export default function VolleyballCourtPageClient({ teamId }: VolleyballCourtPag
 
     const formData = new FormData();
     formData.append('teamName', 'Quickstart Team');
-    formData.append('userId', userId);
 
     const response = await fetch('/api/teams/create', {
       method: 'POST',

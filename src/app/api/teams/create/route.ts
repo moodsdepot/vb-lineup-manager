@@ -1,12 +1,10 @@
-import { createClient } from '@supabase/supabase-js';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import type { Database } from '@/types/supabase';
+import { createServerClient } from '@/lib/supabase-server';
 
 // Input schema validation
 const CreateTeamSchema = z.object({
     teamName: z.string().trim().min(1, "Team name cannot be empty.").max(50, "Team name too long (max 50 chars)."),
-    userId: z.string().uuid("Invalid User ID format."),
 });
 
 // Helper function (duplicate from action, consider moving to shared lib if used elsewhere)
@@ -22,13 +20,19 @@ function generateTeamCode(length = 6): string {
 export async function POST(request: Request) {
     console.log("API Route /api/teams/create received POST request (Client Session Approach).");
 
-    // 1. Parse and Validate Request Body (Team Name AND UserId)
+    // Require an authenticated Supabase session (anonymous is allowed)
+    const supabase = await createServerClient();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+        return NextResponse.json({ success: false, message: 'Not authenticated.' }, { status: 401 });
+    }
+
+    // 1. Parse and Validate Request Body (Team Name)
     let validatedData;
-    let userIdFromForm: string | null = null; 
     try {
         const formData = await request.formData(); 
-        userIdFromForm = formData.get('userId') as string | null; 
-        const rawFormData = { teamName: formData.get('teamName'), userId: userIdFromForm };
+        const rawFormData = { teamName: formData.get('teamName') };
         validatedData = CreateTeamSchema.parse(rawFormData); 
     } catch (error) {
         if (error instanceof z.ZodError) {
@@ -38,23 +42,17 @@ export async function POST(request: Request) {
         return NextResponse.json({ success: false, message: 'Bad Request.' }, { status: 400 });
     }
 
-    const { teamName, userId } = validatedData; 
-    console.log(`[API Route] Processing request for user: ${userId}`);
+    const { teamName } = validatedData; 
+    console.log(`[API Route] Processing request for user: ${user.id}`);
     const teamCode = generateTeamCode(); 
 
     // 2. Call Database Function (RPC)
     try {
-         const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-         const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-         if (!supabaseUrl || !supabaseAnonKey) throw new Error("Server config error");
-         // Use basic client for RPC
-         const supabaseAdmin = createClient<Database>(supabaseUrl, supabaseAnonKey); 
-
-        // Call the RPC function - expect data to be the UUID string directly
-        const { data: newTeamId, error: rpcError } = await supabaseAdmin.rpc('create_team_and_add_owner', {
+        // Call the RPC function with the authenticated user id
+        const { data: newTeamId, error: rpcError } = await supabase.rpc('create_team_and_add_owner', {
             p_team_name: teamName,
             p_team_code: teamCode,
-            p_user_id: userId 
+            p_user_id: user.id 
         });
 
         if (rpcError) throw rpcError;
