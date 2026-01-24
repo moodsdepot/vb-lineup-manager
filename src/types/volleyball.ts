@@ -5,4 +5,11 @@ export interface PlayerToken {
   position?: 'OH' | 'MB' | 'S' | 'OPP' | 'L' | 'DS';
   x: number;  // percentage from left (0-100)
   y: number;  // percentage from top (0-100)
+}
+
+export interface BenchPlayer {
+  id: string;
+  number: string;
+  name?: string;
+  position?: 'OH' | 'MB' | 'S' | 'OPP' | 'L' | 'DS';
 } 

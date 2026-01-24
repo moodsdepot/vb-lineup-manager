@@ -2,8 +2,6 @@
 
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 interface CreateTeamFormProps {
@@ -51,10 +49,10 @@ export default function CreateTeamForm({ onInitiateSubmit, userId }: CreateTeamF
 
         if (!response.ok || !result.success) {
           console.error("API Error:", result.message, result.errors);
-          setFormState({ 
-            success: false, 
-            message: result.message || 'An unexpected error occurred.', 
-            errors: result.errors || null 
+          setFormState({
+            success: false,
+            message: result.message || 'An unexpected error occurred.',
+            errors: result.errors || null
           });
         } else {
           console.log("API Success: Team created", result.teamId);
@@ -72,35 +70,35 @@ export default function CreateTeamForm({ onInitiateSubmit, userId }: CreateTeamF
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-3">
       <div>
         <Label htmlFor="create-team-name" className="sr-only">Team Name</Label>
-        <Input
+        <input
           id="create-team-name"
           type="text"
           name="teamName"
           required
           placeholder="Enter team name"
-          className="w-full px-4 py-3 bg-blue-800/30 text-white border border-white/10 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/50 focus:border-transparent placeholder-white/40"
+          className="w-full px-3.5 py-2.5 bg-white text-[#1a1612] border border-[#c4b8a5] rounded text-sm focus:outline-none focus:ring-2 focus:ring-[#a35d3a]/30 focus:border-[#a35d3a] placeholder-[#a39485]"
           maxLength={50}
           disabled={isPending}
         />
         {formState.errors?.teamName && (
-          <p className="text-violet-300 text-sm mt-1">
+          <p className="text-[#9b3c3c] text-sm mt-1.5">
             {formState.errors.teamName.join(', ')}
           </p>
         )}
         {formState.message && !formState.success && (
-          <p className="text-violet-300 text-sm mt-1">{formState.message}</p>
+          <p className="text-[#9b3c3c] text-sm mt-1.5">{formState.message}</p>
         )}
       </div>
-      <Button
+      <button
         type="submit"
-        className="w-full py-3 px-4 bg-gradient-to-r from-violet-600 to-violet-400 hover:from-violet-700 hover:to-violet-500 text-white font-satoshi font-bold rounded-md disabled:opacity-50 transition-all duration-300"
+        className="w-full py-2.5 px-4 bg-[#a35d3a] hover:bg-[#8a4e31] text-[#faf7f2] font-medium rounded text-sm disabled:opacity-50 transition-colors"
         disabled={isPending}
       >
         {isPending ? 'Creating...' : 'Create Team'}
-      </Button>
+      </button>
     </form>
   );
 }

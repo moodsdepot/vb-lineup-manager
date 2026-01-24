@@ -2,8 +2,6 @@
 
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 interface JoinTeamFormProps {
@@ -75,39 +73,39 @@ export default function JoinTeamForm({ onInitiateSubmit, userId }: JoinTeamFormP
   };
 
   return (
-    <form onSubmit={handleFormSubmit} className="space-y-4">
+    <form onSubmit={handleFormSubmit} className="space-y-3">
       <div>
         <Label htmlFor="join-team-code" className="sr-only">Team Code</Label>
-        <Input
+        <input
           id="join-team-code"
           name="teamCode"
           type="text"
           value={code}
           onChange={(e) => setCode(e.target.value)}
           placeholder="Enter team code"
-          className="w-full px-4 py-3 bg-blue-800/30 text-white border border-white/10 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-transparent placeholder-white/40"
+          className="w-full px-3.5 py-2.5 bg-white text-[#1a1612] border border-[#c4b8a5] rounded text-sm focus:outline-none focus:ring-2 focus:ring-[#a35d3a]/30 focus:border-[#a35d3a] placeholder-[#a39485] uppercase"
           maxLength={6}
           required
           disabled={isPending}
         />
         {formState.errors?.teamCode && (
-          <p className="text-blue-300 text-sm mt-1">
+          <p className="text-[#9b3c3c] text-sm mt-1.5">
             {formState.errors.teamCode.join(', ')}
           </p>
         )}
         {formState.message && (
-          <p className={`${formState.success ? 'text-green-400' : 'text-blue-300'} text-sm mt-1`}>
+          <p className={`${formState.success ? 'text-[#4a7c59]' : 'text-[#9b3c3c]'} text-sm mt-1.5`}>
             {formState.message}
           </p>
         )}
       </div>
-      <Button
+      <button
         type="submit"
-        className="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-blue-400 hover:from-blue-700 hover:to-blue-500 text-white font-satoshi font-bold rounded-md disabled:opacity-50 transition-all duration-300"
+        className="w-full py-2.5 px-4 bg-[#a35d3a] hover:bg-[#8a4e31] text-[#faf7f2] font-medium rounded text-sm disabled:opacity-50 transition-colors"
         disabled={isPending}
       >
         {isPending ? 'Joining...' : 'Join Team'}
-      </Button>
+      </button>
     </form>
   );
 }

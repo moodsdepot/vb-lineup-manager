@@ -21,14 +21,14 @@ export function createServiceClient() {
 }
 
 // Server-side Supabase client that uses the user's session
-export async function createServerClient() {
-  const cookieStore = await cookies();
+export function createServerClient() {
+  const cookieStore = cookies();
   return createServerComponentClient<Database>({ cookies: () => cookieStore });
 }
 
 // Get current user from request (for API routes)
 export async function getCurrentUser() {
-  const supabase = await createServerClient();
+  const supabase = createServerClient();
   const { data: { user }, error } = await supabase.auth.getUser();
 
   if (error || !user) {

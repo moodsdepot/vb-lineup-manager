@@ -34,28 +34,75 @@ export type Database = {
   }
   public: {
     Tables: {
+      athletes: {
+        Row: {
+          created_at: string
+          display_name: string | null
+          id: string
+          is_active: boolean
+          jersey_number: string
+          position: Database["public"]["Enums"]["athlete_position"] | null
+          team_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          is_active?: boolean
+          jersey_number: string
+          position?: Database["public"]["Enums"]["athlete_position"] | null
+          team_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          is_active?: boolean
+          jersey_number?: string
+          position?: Database["public"]["Enums"]["athlete_position"] | null
+          team_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "athletes_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lineups: {
         Row: {
           created_at: string
           id: string
           name: string
           players: Json
+          state: Json
+          state_version: number
           team_id: string
           updated_at: string
         }
         Insert: {
           created_at?: string
           id?: string
-          name?: string
-          players: Json
+          name?: string | null
+          players?: Json
+          state?: Json
+          state_version?: number
           team_id: string
           updated_at?: string
         }
         Update: {
           created_at?: string
           id?: string
-          name?: string
+          name?: string | null
           players?: Json
+          state?: Json
+          state_version?: number
           team_id?: string
           updated_at?: string
         }
@@ -69,22 +116,107 @@ export type Database = {
           },
         ]
       }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          display_name: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_id_fkey"
+            columns: ["id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      share_links: {
+        Row: {
+          created_at: string
+          created_by: string
+          expires_at: string | null
+          id: string
+          max_uses: number | null
+          resource_id: string
+          resource_type: Database["public"]["Enums"]["resource_type"]
+          revoked_at: string | null
+          role: Database["public"]["Enums"]["share_link_role"]
+          token_hash: string
+          use_count: number
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          expires_at?: string | null
+          id?: string
+          max_uses?: number | null
+          resource_id: string
+          resource_type: Database["public"]["Enums"]["resource_type"]
+          revoked_at?: string | null
+          role?: Database["public"]["Enums"]["share_link_role"]
+          token_hash: string
+          use_count?: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          expires_at?: string | null
+          id?: string
+          max_uses?: number | null
+          resource_id?: string
+          resource_type?: Database["public"]["Enums"]["resource_type"]
+          revoked_at?: string | null
+          role?: Database["public"]["Enums"]["share_link_role"]
+          token_hash?: string
+          use_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "share_links_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       team_members: {
         Row: {
-          joined_at: string
-          role: string
+          id: string
+          joined_at: string | null
+          role: Database["public"]["Enums"]["team_role"]
           team_id: string
           user_id: string
         }
         Insert: {
-          joined_at?: string
-          role: string
+          id?: string
+          joined_at?: string | null
+          role?: Database["public"]["Enums"]["team_role"]
           team_id: string
           user_id: string
         }
         Update: {
-          joined_at?: string
-          role?: string
+          id?: string
+          joined_at?: string | null
+          role?: Database["public"]["Enums"]["team_role"]
           team_id?: string
           user_id?: string
         }
@@ -96,31 +228,52 @@ export type Database = {
             referencedRelation: "teams"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "team_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
       teams: {
         Row: {
-          code: string
+          archived_at: string | null
+          code: string | null
           created_at: string
           created_by: string | null
           id: string
           name: string
+          sport_type: string | null
         }
         Insert: {
-          code: string
+          archived_at?: string | null
+          code?: string | null
           created_at?: string
           created_by?: string | null
           id?: string
           name: string
+          sport_type?: string | null
         }
         Update: {
-          code?: string
+          archived_at?: string | null
+          code?: string | null
           created_at?: string
           created_by?: string | null
           id?: string
           name?: string
+          sport_type?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "teams_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
@@ -137,7 +290,10 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      athlete_position: "OH" | "MB" | "S" | "OPP" | "L" | "DS"
+      resource_type: "team" | "lineup"
+      share_link_role: "editor" | "viewer"
+      team_role: "owner" | "editor" | "viewer"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -255,6 +411,11 @@ export const Constants = {
     Enums: {},
   },
   public: {
-    Enums: {},
+    Enums: {
+      athlete_position: ["OH", "MB", "S", "OPP", "L", "DS"],
+      resource_type: ["team", "lineup"],
+      share_link_role: ["editor", "viewer"],
+      team_role: ["owner", "editor", "viewer"],
+    },
   },
 } as const

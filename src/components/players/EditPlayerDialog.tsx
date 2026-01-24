@@ -37,26 +37,26 @@ export default function EditPlayerDialog({ player, isOpen, onClose, onSave }: Ed
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-card p-6 rounded-lg shadow-xl w-96">
-        <h2 className="text-lg font-bold mb-4">Edit Player</h2>
+    <div className="fixed inset-0 bg-[#1a1612]/70 flex items-end sm:items-center justify-center z-50 p-4">
+      <div className="bg-[#faf7f2] p-5 rounded-md shadow-lg w-full max-w-sm border border-[#c4b8a5] modal-enter">
+        <h2 className="text-lg font-semibold text-[#1a1612] mb-4">Edit Player</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-1">Name/Number</label>
+            <label className="block text-sm font-medium text-[#1a1612] mb-1.5">Name/Number</label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full p-2 rounded border bg-background"
+              className="w-full px-3.5 py-2.5 rounded border border-[#c4b8a5] bg-white text-[#1a1612] placeholder-[#a39485] focus:outline-none focus:ring-2 focus:ring-[#a35d3a]/30 focus:border-[#a35d3a]"
               placeholder="Enter name or number"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1">Position</label>
+            <label className="block text-sm font-medium text-[#1a1612] mb-1.5">Position</label>
             <select
               value={position}
               onChange={(e) => setPosition(e.target.value as PlayerToken['position'])}
-              className="w-full p-2 rounded border bg-background"
+              className="w-full px-3.5 py-2.5 rounded border border-[#c4b8a5] bg-white text-[#1a1612] focus:outline-none focus:ring-2 focus:ring-[#a35d3a]/30 focus:border-[#a35d3a]"
             >
               <option value="OH">Outside Hitter (OH)</option>
               <option value="MB">Middle Blocker (MB)</option>
@@ -66,17 +66,17 @@ export default function EditPlayerDialog({ player, isOpen, onClose, onSave }: Ed
               <option value="DS">Defensive Specialist (DS)</option>
             </select>
           </div>
-          <div className="flex justify-end gap-2 mt-6">
+          <div className="flex gap-3 mt-6">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded bg-secondary hover:bg-secondary/80"
+              className="flex-1 px-4 py-2.5 rounded bg-[#d4cdc0] hover:bg-[#c4b8a5] text-[#1a1612] font-medium transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-4 py-2 rounded bg-primary text-primary-foreground hover:bg-primary/90"
+              className="flex-1 px-4 py-2.5 rounded bg-[#a35d3a] hover:bg-[#8a4e31] text-[#faf7f2] font-medium transition-colors"
             >
               Save
             </button>

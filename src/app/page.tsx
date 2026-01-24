@@ -1,23 +1,26 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Link from 'next/link';
 import Image from 'next/image';
 import JoinTeamForm from '@/components/teams/JoinTeamForm';
 import CreateTeamForm from '@/components/teams/CreateTeamForm';
 import AuthModal from '@/components/auth/AuthModal';
 import { getSupabaseBrowserClient } from '@/lib/supabase';
+import { useRouter } from 'next/navigation';
 import type { User } from '@supabase/supabase-js';
 
 export default function Page() {
   const [user, setUser] = useState<User | null>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const [authModalMode, setAuthModalMode] = useState<'login' | 'signup'>('login');
+  const [authModalMode, setAuthModalMode] = useState<'login' | 'signup' | 'link'>('login');
+  const [quickStartLoading, setQuickStartLoading] = useState(false);
+  const [quickStartError, setQuickStartError] = useState<string | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
-     const supabase = getSupabaseBrowserClient(); 
+     const supabase = getSupabaseBrowserClient();
      let isMounted = true;
-     const fetchUser = async () => { 
+     const fetchUser = async () => {
         try {
              const { data: { session }, error } = await supabase.auth.getSession();
              if (error) throw error;
@@ -33,148 +36,166 @@ export default function Page() {
          (event, session) => {
              if (isMounted) {
                  setUser(session?.user ?? null);
-                 // Maybe close modal if user logs in/out while it's open?
-                 // if(isAuthModalOpen) setIsAuthModalOpen(false); 
              }
          }
      );
-     return () => { 
+     return () => {
          isMounted = false;
-         authListener.subscription.unsubscribe(); 
+         authListener.subscription.unsubscribe();
      };
   }, []);
 
-  const openModal = (mode: 'login' | 'signup') => {
+  const openModal = (mode: 'login' | 'signup' | 'link') => {
     setAuthModalMode(mode);
     setIsAuthModalOpen(true);
   };
 
   const handleInitiateJoin = () => {
     if (!user) {
-      openModal('login'); 
-      return false; 
+      openModal('login');
+      return false;
     }
-    return true; 
+    return true;
   };
 
   const handleInitiateCreate = () => {
     if (!user) {
-      openModal('login'); 
-      return false; 
+      openModal('login');
+      return false;
     }
-    return true; 
+    return true;
   };
-  
-  // Optional: Show a loading indicator for the whole page?
-  // if (loadingUser) return <div>Loading...</div>;
+
+  const handleQuickStart = async () => {
+    const supabase = getSupabaseBrowserClient();
+    setQuickStartLoading(true);
+    setQuickStartError(null);
+
+    try {
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError) throw sessionError;
+
+      if (session?.user) {
+        router.push('/court');
+        return;
+      }
+
+      const { error } = await supabase.auth.signInAnonymously();
+      if (error) throw error;
+
+      router.push('/court');
+    } catch (err) {
+      console.error('Quick start error:', err);
+      const message = err instanceof Error ? err.message : 'Could not start anonymous session.';
+      setQuickStartError(message);
+    } finally {
+      setQuickStartLoading(false);
+    }
+  };
 
   return (
     <main className="min-h-screen w-full relative overflow-y-auto">
-      {/* Fixed Background Image Layer */}
-      <div 
-        className="fixed inset-0 z-[-1] bg-cover bg-center bg-no-repeat" 
-        style={{ backgroundImage: "url('/hardwood.png')" }} 
-      >
-        {/* Optional subtle overlay to darken/tint the background if needed */}
-        {/* <div className="absolute inset-0 bg-black/30"></div> */}
-      </div>
+      {/* Hardwood background */}
+      <div
+        className="fixed inset-0 z-[-1] bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: "url('/hardwood.png')" }}
+      />
+      <div className="fixed inset-0 z-[-1] bg-[#2c2418]/60" />
 
-      {/* Render the Modal */}
-      <AuthModal 
-        open={isAuthModalOpen} 
+      {/* Auth Modal */}
+      <AuthModal
+        open={isAuthModalOpen}
         onOpenChange={setIsAuthModalOpen}
-        initialMode={authModalMode} 
+        initialMode={authModalMode}
       />
 
-      <div className="relative w-full max-w-7xl mx-auto px-4 py-12 md:py-24 flex flex-col items-center">
+      <div className="relative w-full max-w-md mx-auto px-5 py-12 md:py-20 flex flex-col items-center">
         {/* Hero Section */}
-        <div className="text-center mb-16 md:mb-24">
-          <div className="mb-8">
-            <Image 
+        <div className="text-center mb-10">
+          <div className="mb-5">
+            <Image
               src="/volleyball-logo.png"
-              alt="LineupMan Volleyball Logo"
-              width={100} 
-              height={100} 
-              className="mx-auto" 
-              priority 
+              alt="LineupMan"
+              width={64}
+              height={64}
+              className="mx-auto drop-shadow-md"
+              priority
             />
           </div>
-          <h1 className="font-satoshi font-bold text-5xl md:text-7xl lg:text-8xl tracking-tight text-white mb-6">
+          <h1 className="text-3xl md:text-4xl text-[#f5f0e8] mb-2 drop-shadow-sm">
             LineupMan
           </h1>
-          <p className="font-satoshi text-xl md:text-2xl text-white/80 max-w-2xl mx-auto">
-            Create, manage, and share your team lineups with ease
+          <p className="text-sm md:text-base text-[#d4cdc0]">
+            Create, manage, and share your volleyball lineups
           </p>
         </div>
 
-        {/* Cards - Vertical Stack */}
-        <div className="w-full max-w-md space-y-6">
+        {/* Cards - Solid linen surfaces */}
+        <div className="w-full space-y-4">
           {/* Join Team Card */}
-          <div className="relative bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-8 shadow-lg">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-4">
-                <div className="bg-blue-500/20 p-3 rounded-lg">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-400">
-                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
-                    <circle cx="9" cy="7" r="4"></circle>
-                    <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
-                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                  </svg>
-                </div>
-                <h2 className="font-satoshi font-bold text-2xl text-white">Join Team</h2>
+          <div className="bg-[#f5f0e8] border border-[#c4b8a5] rounded-md p-5 shadow-sm">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-9 h-9 bg-[#a35d3a]/10 rounded flex items-center justify-center flex-shrink-0">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#a35d3a]">
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="9" cy="7" r="4"></circle>
+                  <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+              </div>
+              <div>
+                <h2 className="font-semibold text-[#1a1612]">Join Team</h2>
+                <p className="text-sm text-[#6b5f52]">Enter your team code</p>
               </div>
             </div>
-            <p className="text-white/70 mb-6">
-              Enter your team code to access your team&apos;s lineups
-            </p>
-            <JoinTeamForm 
-              onInitiateSubmit={handleInitiateJoin} 
+            <JoinTeamForm
+              onInitiateSubmit={handleInitiateJoin}
               userId={user?.id}
             />
           </div>
 
           {/* Create Team Card */}
-          <div className="relative bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-8 shadow-lg">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-4">
-                <div className="bg-violet-500/20 p-3 rounded-lg">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-violet-400">
-                    <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"></path>
-                  </svg>
-                </div>
-                <h2 className="font-satoshi font-bold text-2xl text-white">Create Team</h2>
+          <div className="bg-[#f5f0e8] border border-[#c4b8a5] rounded-md p-5 shadow-sm">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-9 h-9 bg-[#a35d3a]/10 rounded flex items-center justify-center flex-shrink-0">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#a35d3a]">
+                  <path d="M12 5v14M5 12h14"></path>
+                </svg>
+              </div>
+              <div>
+                <h2 className="font-semibold text-[#1a1612]">Create Team</h2>
+                <p className="text-sm text-[#6b5f52]">Start a new team</p>
               </div>
             </div>
-            <p className="text-white/70 mb-6">
-              Start a new team and invite your players
-            </p>
-            <CreateTeamForm 
-              onInitiateSubmit={handleInitiateCreate} 
+            <CreateTeamForm
+              onInitiateSubmit={handleInitiateCreate}
               userId={user?.id}
             />
           </div>
 
-          {/* Quick Start Card */}
-          <div className="relative bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-8 shadow-lg">
-            <div className="flex items-center gap-4 mb-4">
-              <div className="bg-cyan-500/20 p-3 rounded-lg">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-cyan-400">
-                  <path d="M5 12h14M12 5l7 7-7 7"></path>
-                </svg>
-              </div>
-              <h2 className="font-satoshi font-bold text-2xl text-white">Quick Start</h2>
-            </div>
-            <p className="text-white/70 mb-6">
-              Try the app without creating a team
-            </p>
-            <Link 
-              href="/court"
-              className="block w-full py-3 px-4 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-satoshi font-bold rounded-md text-center transition-all duration-300"
+          {/* Quick Start */}
+          <div className="pt-1">
+            <button
+              type="button"
+              onClick={handleQuickStart}
+              disabled={quickStartLoading}
+              className="flex items-center justify-center gap-2 w-full py-3 px-4 bg-[#d4cdc0] hover:bg-[#c4b8a5] text-[#1a1612] font-medium rounded-md text-center transition-colors disabled:opacity-60"
             >
-              Open Court
-            </Link>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M5 12h14M12 5l7 7-7 7"></path>
+              </svg>
+              {quickStartLoading ? 'Starting...' : 'Try without signing in'}
+            </button>
+            {quickStartError && (
+              <p className="mt-2 text-center text-sm text-[#9b3c3c]">{quickStartError}</p>
+            )}
           </div>
         </div>
+
+        {/* Footer */}
+        <p className="mt-10 text-xs text-[#a39485]">
+          Mobile-first lineup management for volleyball teams
+        </p>
       </div>
     </main>
   );
