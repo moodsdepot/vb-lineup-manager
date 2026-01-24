@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { Label } from "@/components/ui/label";
+import { getSupabaseBrowserClient } from '@/lib/supabase';
 
 interface CreateTeamFormProps {
   onInitiateSubmit: () => boolean;
@@ -38,8 +39,12 @@ export default function CreateTeamForm({ onInitiateSubmit, userId }: CreateTeamF
 
     startTransition(async () => {
       try {
+        const supabase = getSupabaseBrowserClient();
+        const { data: { session } } = await supabase.auth.getSession();
+
         const response = await fetch('/api/teams/create', {
           method: 'POST',
+          headers: session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : undefined,
           body: formData,
         });
 

@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { Label } from "@/components/ui/label";
+import { getSupabaseBrowserClient } from '@/lib/supabase';
 
 interface JoinTeamFormProps {
   onInitiateSubmit: () => boolean;
@@ -41,8 +42,12 @@ export default function JoinTeamForm({ onInitiateSubmit, userId }: JoinTeamFormP
 
     startTransition(async () => {
       try {
+        const supabase = getSupabaseBrowserClient();
+        const { data: { session } } = await supabase.auth.getSession();
+
         const response = await fetch('/api/teams/join', {
           method: 'POST',
+          headers: session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : undefined,
           body: formData,
         });
 

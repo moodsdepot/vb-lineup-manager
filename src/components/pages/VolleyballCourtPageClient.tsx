@@ -120,8 +120,11 @@ export default function VolleyballCourtPageClient({ teamId }: VolleyballCourtPag
     const formData = new FormData();
     formData.append('teamName', 'Quickstart Team');
 
+    const { data: { session } } = await client.auth.getSession();
+
     const response = await fetch('/api/teams/create', {
       method: 'POST',
+      headers: session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : undefined,
       body: formData,
     });
 

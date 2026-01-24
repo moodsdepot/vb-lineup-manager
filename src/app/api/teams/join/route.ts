@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { createServerClient } from '@/lib/supabase-server';
+import { createClient } from '@supabase/supabase-js';
+import type { Database } from '@/types/supabase';
 
 // Validation schema
 const JoinTeamSchema = z.object({
@@ -13,8 +15,20 @@ const JoinTeamSchema = z.object({
 export async function POST(request: Request) {
     console.log("API Route /api/teams/join received POST request (Client Session Approach).");
 
-    // Require an authenticated Supabase session (anonymous is allowed)
-    const supabase = await createServerClient();
+    // Prefer bearer token from Authorization header; fall back to cookie-based session
+    const authHeader = request.headers.get('authorization');
+    const supabase =
+      authHeader && process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+        ? createClient<Database>(
+            process.env.NEXT_PUBLIC_SUPABASE_URL,
+            process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+            {
+              global: { headers: { Authorization: authHeader } },
+              auth: { persistSession: false, autoRefreshToken: false },
+            },
+          )
+        : await createServerClient();
+
     const { data: { user }, error: authError } = await supabase.auth.getUser();
 
     if (authError || !user) {
